@@ -20,11 +20,13 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $permissions = [
             'create-purchase-request',
-            'view-own-purchase',
+            'view-own-purchase-request',
             'view-all-purchase-requests',
             'submit-purchase-request',
             'approve-purchase-request',
             'reject-purchase-request',
+            'manage-purchase-orders',
+            'manage-invoices',
             'manage-roles',
             'assign-roles',
             'update-permissions'
@@ -47,7 +49,7 @@ class RolesAndPermissionsSeeder extends Seeder
         $staff = Role::firstOrCreate(['name' => 'staff']); //normal staff
         $staff->syncPermissions([ //staff permissions
             'create-purchase-request',
-            'view-own-purchase',
+            'view-own-purchase-request',
             'submit-purchase-request',
         ]);
 

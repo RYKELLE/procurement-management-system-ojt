@@ -12,14 +12,14 @@
         </div>
 
         <div class="field">
-          <label>Username</label>
+          <label>Email</label>
           <input
-            v-model="form.username"
-            type="text"
-            placeholder="Enter your username"
-            autocomplete="username"
+            v-model="form.email"
+            type="email"
+            placeholder="Enter your email"
+            autocomplete="email"
           />
-          <span v-if="errors.username" class="field-error">{{ errors.username }}</span>
+          <span v-if="errors.email" class="field-error">{{ errors.email }}</span>
         </div>
 
         <div class="field">
@@ -51,17 +51,21 @@ import api from '@/api/axios'
 const router = useRouter()
 const auth = useAuthStore()
 
-const form = reactive({ username: '', password: '' })
+const form = reactive({ email: '', password: '' })
 const loading = ref(false)
 const errorMessage = ref('')
-const errors = reactive({ username: '', password: '' })
+const errors = reactive({ email: '', password: '' })
 
 function validate() {
   let valid = true
-  errors.username = ''
+  errors.email = ''
   errors.password = ''
 
-  if (!form.username) { errors.username = 'Username is required.'; valid = false }
+  if (!form.email) { errors.email = 'Email is required.'; valid = false }
+  else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) {
+    errors.email = 'Email must be valid.'; valid = false
+  }
+
   if (!form.password) { errors.password = 'Password is required.'; valid = false }
 
   return valid
@@ -74,20 +78,21 @@ async function handleLogin() {
   loading.value = true
   try {
     const response = await api.post('/login', {
-      username: form.username,
+      email: form.email,
       password: form.password
     })
 
     const { token, user, permissions } = response.data
     auth.setAuth(token, user, permissions)
 
-    if (user.role === 'Admin') router.push('/dashboard')
-    else if (user.role === 'Approver') router.push('/approvals')
+    const role = (user.role || '').toLowerCase()
+    if (role === 'admin') router.push('/dashboard')
+    else if (role === 'approver') router.push('/approvals')
     else router.push('/purchase-requests')
 
   } catch (error) {
     if (error.response?.status === 401) {
-      errorMessage.value = 'Invalid username or password.'
+      errorMessage.value = 'Invalid email or password.'
     } else {
       errorMessage.value = 'Something went wrong. Please try again.'
     }

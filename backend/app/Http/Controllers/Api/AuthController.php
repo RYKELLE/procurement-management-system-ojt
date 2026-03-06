@@ -22,14 +22,17 @@ class AuthController extends Controller
         $user = Auth::user();
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        $perms = $user->getAllPermissions()->pluck('name');
+
         return response()->json([
             'token' => $token,
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => $user->getRoleNames()->first(),
-            ]
+                'role' => strtolower($user->getRoleNames()->first()),
+            ],
+            'permissions' => $perms,
         ]);
     }
 
@@ -45,12 +48,14 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         $user = $request->user();
+        $perms = $user->getAllPermissions()->pluck('name');
 
         return response()->json([
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
-            'role' => $user->getRoleNames()->first(),
+            'role' => strtolower($user->getRoleNames()->first()),
+            'permissions' => $perms,
         ]);
     }
 }
