@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->foreignId('supplier_id')->constrained('suppliers');
             $table->foreignId('created_by')->constrained('users');
             $table->decimal('order_total_amount', 10, 2)->nullable();
-            $table->enum('status', ['pending', 'completed', 'cancelled'])->nullable();
+            $table->enum('status', ['active', 'completed', 'cancelled'])->nullable();
             $table->timestamps();
         });
     }

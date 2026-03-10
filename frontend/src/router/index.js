@@ -77,12 +77,23 @@ const routes = [
         meta: { permission: 'manage-purchase-orders' }
       },
 
+      {
+        path: 'purchase-orders/:id',
+        name: 'OrderDetail',
+        component: () => import('@/pages/purchase-orders/OrderDetail.vue')
+      },
+
       // INVOICES
       {
         path: 'invoices',
         name: 'Invoices',
         component: () => import('@/pages/invoices/Invoices.vue'),
         meta: { permission: 'manage-invoices' }
+      },
+      {
+        path: 'invoices/:id',
+        name: 'InvoiceDetail',
+        component: () => import('@/pages/invoices/InvoiceDetail.vue')
       },
 
       // SUPPLIERS
