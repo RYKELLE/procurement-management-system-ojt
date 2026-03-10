@@ -75,5 +75,24 @@ class RolesAndPermissionsSeeder extends Seeder
 
         $staffUser->assignRole('staff');
 
+        // Create test items
+        $items = [
+            ['item_name' => 'Ballpen', 'item_price' => 25.00, 'item_description' => 'Black ballpen'],
+            ['item_name' => 'Notebook', 'item_price' => 85.00, 'item_description' => 'Spiral notebook'],
+            ['item_name' => 'Printer Paper (Ream)', 'item_price' => 250.00, 'item_description' => 'A4 size, 500 sheets'],
+            ['item_name' => 'Whiteboard Marker', 'item_price' => 45.00, 'item_description' => 'Black, erasable'],
+            ['item_name' => 'Stapler', 'item_price' => 150.00, 'item_description' => 'Standard stapler'],
+            ['item_name' => 'Folder (Pack of 10)', 'item_price' => 120.00, 'item_description' => 'Long size folders'],
+            ['item_name' => 'Correction Tape', 'item_price' => 35.00, 'item_description' => 'Standard correction tape'],
+            ['item_name' => 'Sticky Notes (Pack)', 'item_price' => 65.00, 'item_description' => '3x3 inch, 100 sheets'],
+        ];
+
+        foreach ($items as $item) {
+            \App\Models\Item::firstOrCreate(
+                ['item_name' => $item['item_name']],
+                ['item_price' => $item['item_price'], 'item_description' => $item['item_description']]
+            );
+        }
+
     }
 }
