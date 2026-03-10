@@ -12,6 +12,7 @@ return new class extends Migration {
     {
         Schema::create('items', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('supplier_id')->nullable()->constrained('suppliers');
             $table->string('item_name');
             $table->decimal('item_price', 10, 2);
             $table->text('item_description')->nullable();
