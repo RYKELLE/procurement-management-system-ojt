@@ -38,6 +38,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import api from '@/api/axios'
@@ -45,14 +46,34 @@ import api from '@/api/axios'
 const router = useRouter()
 const auth = useAuthStore()
 
-const navLinks = [
-  { to: '/dashboard',         label: 'Dashboard' },
-  { to: '/purchase-requests', label: 'Purchase Requests' },
-  { to: '/purchase-orders',   label: 'Purchase Orders' },
-  { to: '/invoices',          label: 'Invoices' },
-  { to: '/suppliers',         label: 'Suppliers' },
-  { to: '/admin/users',       label: 'Users & Roles' },
-]
+const navLinks = computed(() => {
+  const role = (auth.user?.role || '').toLowerCase()
+  const links = []
+
+  links.push({ to: '/dashboard', label: 'Dashboard' })
+
+  if (role === 'staff') {
+    links.push({ to: '/purchase-requests', label: 'Purchase Requests' })
+  }
+
+  if (role === 'approver' || role === 'admin') {
+    links.push({ to: '/approvals', label: 'Pending Approvals' })
+  }
+
+  if (role === 'admin') {
+    links.push({ to: '/purchase-requests', label: 'Purchase Requests' })
+  }
+
+  links.push({ to: '/purchase-orders', label: 'Purchase Orders' })
+  links.push({ to: '/invoices', label: 'Invoices' })
+  links.push({ to: '/suppliers', label: 'Suppliers' })
+
+  if (role === 'admin') {
+    links.push({ to: '/admin/users', label: 'Users & Roles' })
+  }
+
+  return links
+})
 
 async function handleLogout() {
   try {
