@@ -1,7 +1,7 @@
 <template>
-  <div class="app-layout">
+  <div class="flex h-screen">
     <SideNav />
-    <div class="main-content">
+    <div class="flex-1 bg-slate-100 p-6 overflow-y-auto">
       <RouterView />
     </div>
   </div>
@@ -10,17 +10,3 @@
 <script setup>
 import SideNav from '@/components/SideNav.vue'
 </script>
-
-<style scoped>
-.app-layout {
-  display: flex;
-  min-height: 100vh;
-}
-
-.main-content {
-  flex: 1;
-  background: #f1f5f9;
-  padding: 32px;
-  overflow-y: auto;
-}
-</style>
