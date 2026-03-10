@@ -22,5 +22,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post(('/purchase-requests/{id}/submit'), [PurchaseRequestController::class, 'submit']);
 
     Route::post(('/purchase-requests/{id}/approve'), [ApprovalController::class, 'approve']);
-    Route::post(('/purchase-request/{id}/reject'), [ApprovalController::class, 'reject']);
+    Route::post('/purchase-requests/{id}/reject', [ApprovalController::class, 'reject']);
 });

@@ -186,7 +186,7 @@ const total = computed(() => {
 
 const canSubmit = computed(() => {
   const role = (auth.user?.role || '').toLowerCase()
-  return role === 'staff' && request.value.request_status === 'draft'
+  return (role === 'staff' || role === 'admin') && request.value.request_status === 'draft'
 })
 
 const canApprove = computed(() => {
