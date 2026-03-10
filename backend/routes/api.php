@@ -3,9 +3,14 @@
 use App\Http\Controllers\Api\ApprovalController;
 use App\Http\Controllers\Api\PurchaseRequestController;
 use Illuminate\Support\Facades\Route;
+use App\Models\Item;
 use App\Http\Controllers\Api\AuthController;
 
 Route::post('/login', [AuthController::class, 'login']);
+
+Route::get('/items', function () {
+    return response()->json(Item::all());
+});
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);

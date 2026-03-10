@@ -164,14 +164,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/api/axios'
 
 const router = useRouter()
 const loading = ref(false)
 
-// Auto-fill today's date
 const today = new Date().toISOString().split('T')[0]
 
 const form = reactive({
@@ -186,14 +185,16 @@ const errors = reactive({
   items: '',
 })
 
-// Dummy item options — replace with real API call later
-const itemOptions = ref([
-  { id: 1, item_name: 'Office Chair' },
-  { id: 2, item_name: 'Laptop' },
-  { id: 3, item_name: 'Printer Paper (Ream)' },
-  { id: 4, item_name: 'Ballpen (Box)' },
-  { id: 5, item_name: 'Whiteboard Marker (Set)' },
-])
+const itemOptions = ref([])
+
+async function fetchItems() {
+  try {
+    const response = await api.get('/items')
+    itemOptions.value = response.data
+  } catch (e) {
+    errors.items = 'Failed to load items. Please refresh.'
+  }
+}
 
 function newItem() {
   return {
@@ -274,25 +275,21 @@ async function handleSubmit() {
 
   loading.value = true
   try {
-    // TODO: replace with real API call
-    // await api.post('/purchase-requests', {
-    //   reason: form.reason,
-    //   date: form.date,
-    //   items: form.items.map(i => ({
-    //     item_id: i.item_id,
-    //     item_quantity: i.quantity,
-    //     unit_price: i.unit_price,
-    //   }))
-    // })
-
-    // Simulate success for now
-    await new Promise(r => setTimeout(r, 800))
+    await api.post('/purchase-requests', {
+      reason: form.reason,
+      items: form.items.map(i => ({
+        item_id: i.item_id,
+        item_quantity: i.quantity,
+        unit_price: i.unit_price,
+      }))
+    })
     router.push('/purchase-requests')
-
   } catch (error) {
     errors.items = 'Failed to submit request. Please try again.'
   } finally {
     loading.value = false
   }
 }
+
+onMounted(fetchItems)
 </script>
