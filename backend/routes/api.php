@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\PurchaseRequestController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 
@@ -8,4 +9,9 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+
+    Route::get('/purchase-requests', [PurchaseRequestController::class, 'index']);
+    Route::post('/purchase-requests', [PurchaseRequestController::class, 'store']);
+    Route::get('/purchase-requests/{id}', [PurchaseRequestController::class, 'show']);
+    Route::post(('/purchase-requests/{id}/submit'), [PurchaseRequestController::class, 'submit']);
 });

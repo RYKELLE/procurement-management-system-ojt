@@ -13,10 +13,10 @@ return new class extends Migration {
         Schema::create('purchase_requests', function (Blueprint $table) {
             $table->id();
             $table->foreignId('requested_by')->constrained('users');
-            $table->foreignId('approved_by')->constrained('users');
+            $table->foreignId('approved_by')->nullable()->constrained('users');
             $table->enum('request_status', ['draft', 'submitted', 'approved', 'rejected'])->default('draft');
             $table->string('reason');
-            $table->timestamp('date-approved');
+            $table->timestamp('date_approved')->nullable();
             $table->timestamps();
         });
     }
