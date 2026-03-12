@@ -30,7 +30,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'view-purchase-orders', 
             'view-invoices',  
             'manage-users',
-            'update-permissions',
+            'manage-roles',
         ];
 
         foreach ($permissions as $permission) {

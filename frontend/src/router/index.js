@@ -35,10 +35,10 @@ const routes = [
         meta: { permission: 'manage-users' }
       },
       {
-        path: 'admin/users/:id/edit',
-        name: 'UserEdit',
-        component: () => import('@/pages/admin/UserEdit.vue'),
-        meta: { permission: 'manage-users' }
+        path: 'admin/roles',
+        name: 'Roles',
+        component: () => import('@/pages/admin/Roles.vue'),
+        meta: { permission: 'manage-roles' }
       },
 
       // REQUESTER
