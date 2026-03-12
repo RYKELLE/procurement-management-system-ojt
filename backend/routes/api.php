@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\InvoiceController;
 use Illuminate\Support\Facades\Route;
 use App\Models\Item;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\SupplierController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -34,4 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/invoices/{id}', [InvoiceController::class, 'show']);
     Route::post('/invoices/{id}/paid', [InvoiceController::class, 'markAsPaid']);
 
+    Route::get('/suppliers', [SupplierController::class, 'index']);
+    Route::post('/suppliers', [SupplierController::class, 'store']);
+    Route::patch('/suppliers/{supplier}', [SupplierController::class, 'update']);
 });
