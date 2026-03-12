@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\PurchaseRequest;
 use App\Models\RequestItem;
 use Illuminate\Http\Request;
@@ -10,6 +11,19 @@ use Illuminate\Support\Facades\Auth;
 
 class PurchaseRequestController extends Controller
 {
+
+  private function log(string $description, PurchaseRequest $subject): void
+    {
+        $alias = 'PR-' . str_pad((string) $subject->id, 5, '0', STR_PAD_LEFT);
+
+        ActivityLog::create([
+            'user_id'      => Auth::id(),
+            'description'  => str_replace('{request}', $alias, $description),
+            'subject_type' => 'purchase_request',
+            'subject_id'   => $subject->id,
+        ]);
+    }
+
   public function index()
   {
     $user = Auth::user(); //gets the current user
@@ -53,6 +67,8 @@ class PurchaseRequestController extends Controller
       ]);
     }
 
+    $this->log("Purchase request {request} created", $purchaseRequest);
+
     return response()->json($purchaseRequest->load('items.item'), 201);
   }
 
@@ -86,7 +102,8 @@ class PurchaseRequestController extends Controller
 
     $purchaseRequest->update(['request_status' => 'submitted']); //update the status of the request
 
+    $this->log("Purchase request {request} submitted", $purchaseRequest);
+
     return response()->json($purchaseRequest);
   }
 }
-

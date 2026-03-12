@@ -19,29 +19,43 @@
           {{ card.label }}
         </div>
         <div class="text-5xl font-bold text-slate-800 mb-4">
-          {{ card.value }}
+          {{ loading ? '—' : card.value }}
         </div>
         <div class="text-sm text-slate-700 mt-auto">→ View Details</div>
       </RouterLink>
     </div>
 
-    <!-- Recent Activity — fills remaining space -->
+    <!-- Recent Activity -->
     <div class="flex flex-col flex-1 bg-white border border-slate-800 min-h-0">
       <div class="px-6 py-5 border-b border-slate-800 shrink-0">
         <h2 class="text-sm font-bold text-slate-800 tracking-widest uppercase">Recent Activity</h2>
       </div>
       <div class="flex-1 overflow-y-auto divide-y divide-slate-100 px-6">
+
+        <!-- Loading -->
+        <div v-if="loading" class="flex items-center justify-center py-12">
+          <span class="text-sm text-slate-400">Loading...</span>
+        </div>
+
+        <!-- Empty -->
+        <div v-else-if="recentActivity.length === 0" class="flex items-center justify-center py-12">
+          <span class="text-sm text-slate-400">No recent activity.</span>
+        </div>
+
+        <!-- Activity rows -->
         <div
-          v-for="(item, index) in recentActivity"
-          :key="index"
+          v-else
+          v-for="item in recentActivity"
+          :key="item.id"
           class="flex items-center justify-between py-4"
         >
           <div class="flex items-center gap-4">
             <span class="text-slate-800 text-xs">■</span>
-            <span class="text-sm text-slate-700">{{ item.text }}</span>
+            <span class="text-sm text-slate-700">{{ item.description }}</span>
           </div>
-          <span class="text-sm text-slate-400 whitespace-nowrap">{{ item.time }}</span>
+          <span class="text-sm text-slate-400 whitespace-nowrap">{{ item.created_at }}</span>
         </div>
+
       </div>
     </div>
 
@@ -49,21 +63,36 @@
 </template>
 
 <script setup>
-// Dummy data — replace with real API calls later
-const statCards = [
-  { label: 'Pending Purchase Requests', value: 12, link: '/purchase-requests' },
-  { label: 'Active Purchase Orders',    value: 8,  link: '/purchase-orders' },
-  { label: 'Unpaid Invoices',           value: 5,  link: '/invoices' },
-  { label: 'Total Suppliers',           value: 24, link: '/suppliers' },
-]
+import { ref, onMounted } from 'vue'
+import api from '@/api/axios'
 
-const recentActivity = [
-  { text: 'PR-00045 created by John Doe',      time: '2 hours ago' },
-  { text: 'PO-00123 approved by Jane Smith',   time: '4 hours ago' },
-  { text: 'Invoice INV-00089 marked as paid',  time: '5 hours ago' },
-  { text: 'PR-00044 rejected by Manager',      time: '1 day ago' },
-  { text: 'New supplier ABC Corp added',       time: '2 days ago' },
-  { text: 'PO-00122 created by John Doe',      time: '2 days ago' },
-  { text: 'PR-00043 approved by Jane Smith',   time: '3 days ago' },
-]
+const loading = ref(true)
+const recentActivity = ref([])
+
+const statCards = ref([
+  { label: 'Pending Purchase Requests', value: 0, link: '/purchase-requests' },
+  { label: 'Active Purchase Orders',    value: 0, link: '/purchase-orders' },
+  { label: 'Unpaid Invoices',           value: 0, link: '/invoices' },
+  { label: 'Total Suppliers',           value: 0, link: '/suppliers' },
+])
+
+async function fetchDashboard() {
+  try {
+    const response = await api.get('/dashboard')
+    const data = response.data
+
+    statCards.value[0].value = data.pending_requests ?? 0
+    statCards.value[1].value = data.active_orders    ?? 0
+    statCards.value[2].value = data.unpaid_invoices  ?? 0
+    statCards.value[3].value = data.total_suppliers  ?? 0
+
+    recentActivity.value = data.recent_activity ?? []
+  } catch (error) {
+    console.error('Failed to load dashboard', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(fetchDashboard)
 </script>

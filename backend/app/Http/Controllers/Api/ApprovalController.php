@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\PurchaseOrder;
 use Illuminate\Support\Facades\Auth;
 use App\Models\PurchaseRequest;
@@ -10,6 +11,18 @@ use Illuminate\Http\Request;
 
 class ApprovalController extends Controller
 {
+
+  private function log(string $description, PurchaseRequest $subject): void
+    {
+        $alias = 'PR-' . str_pad((string) $subject->id, 5, '0', STR_PAD_LEFT);
+
+        ActivityLog::create([
+            'user_id'      => Auth::id(),
+            'description'  => str_replace('{request}', $alias, $description),
+            'subject_type' => 'purchase_request',
+            'subject_id'   => $subject->id,
+        ]);
+    }
 
   public function approve($id)
   {
@@ -39,6 +52,8 @@ class ApprovalController extends Controller
       'status' => 'active'
     ]);
 
+    $this->log("Purchase request {request} approved", $purchaseRequest);
+
     return response()->json($purchaseRequest);
   }
 
@@ -55,6 +70,8 @@ class ApprovalController extends Controller
       'approved_by' => Auth::user()->id,
       'date_approved' => now()
     ]);
+
+    $this->log("Purchase request {request} rejected", $purchaseRequest);
 
     return response()->json($purchaseRequest);
   }
