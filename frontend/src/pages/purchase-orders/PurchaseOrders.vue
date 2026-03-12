@@ -33,10 +33,10 @@
               :key="order.id"
               class="hover:bg-slate-50 transition"
             >
-              <td class="px-6 py-4 text-slate-700 font-medium">{{ order.order_id }}</td>
-              <td class="px-6 py-4 text-slate-700">{{ order.linked_request_id }}</td>
-              <td class="px-6 py-4 text-slate-700">{{ order.supplier }}</td>
-              <td class="px-6 py-4 text-slate-700">${{ order.total_amount.toFixed(2) }}</td>
+              <td class="px-6 py-4 text-slate-700 font-medium">{{ order.id }}</td>
+              <td class="px-6 py-4 text-slate-700">{{ order.request_id }}</td>
+              <td class="px-6 py-4 text-slate-700">{{ order.supplier.supplier_name }}</td>
+              <td class="px-6 py-4 text-slate-700">${{ Number(order.order_total_amount).toFixed(2) }}</td>
               <td class="px-6 py-4">
                 <span
                   class="border text-xs font-semibold uppercase tracking-wide px-3 py-1.5"
@@ -45,7 +45,7 @@
                   {{ order.status }}
                 </span>
               </td>
-              <td class="px-6 py-4 text-slate-500">{{ order.date_created }}</td>
+              <td class="px-6 py-4 text-slate-500">{{ order.created_at.slice(0, 10) }}</td>
               <td class="px-6 py-4">
                 <RouterLink
                   :to="`/purchase-orders/${order.id}`"
@@ -64,35 +64,28 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useAuthStore } from '@/stores/auth'
+import { ref, computed, onMounted } from 'vue'
+import api from '@/api/axios'
 
-const auth = useAuthStore()
 
-const isStaff = computed(() => {
-  return (auth.user?.role || '').toLowerCase() === 'staff'
-})
+const orders = ref([])
+const loading = ref(true)
+const error = ref(null)
 
-// Dummy data — replace with real API call later
-const orders = ref([
-  { id: 123, order_id: 'PO-00123', linked_request_id: 'PR-00044', supplier: 'ABC Office Supplies', total_amount: 1250.00, status: 'active',    date_created: '2026-03-03', created_by: 3 },
-  { id: 122, order_id: 'PO-00122', linked_request_id: 'PR-00043', supplier: 'TechCorp Inc',         total_amount: 3400.00, status: 'active',    date_created: '2026-03-02', created_by: 3 },
-  { id: 121, order_id: 'PO-00121', linked_request_id: 'PR-00040', supplier: 'Global Traders',       total_amount: 890.50,  status: 'completed', date_created: '2026-02-27', created_by: 2 },
-  { id: 120, order_id: 'PO-00120', linked_request_id: 'PR-00038', supplier: 'Office Depot Pro',     total_amount: 2100.00, status: 'active',    date_created: '2026-02-26', created_by: 3 },
-  { id: 119, order_id: 'PO-00119', linked_request_id: 'PR-00036', supplier: 'ABC Office Supplies',  total_amount: 675.25,  status: 'completed', date_created: '2026-02-24', created_by: 2 },
-  { id: 118, order_id: 'PO-00118', linked_request_id: 'PR-00035', supplier: 'Stationery World',     total_amount: 1540.00, status: 'active',    date_created: '2026-02-23', created_by: 3 },
-])
+const visibleOrders = computed(() => orders.value)
 
-// Staff only sees orders linked to their own requests
-// When connected to backend, the API will handle this filtering
-const visibleOrders = computed(() => {
-  if (isStaff.value) {
-    // TODO: filter by auth.user.id against the request's requested_by
-    // For now, dummy filter by created_by matching user id 3 as example
-    return orders.value.filter(o => o.created_by === auth.user?.id)
+async function fetchOrders() {
+  try {
+    const response = await api.get('/purchase-orders')
+    orders.value = response.data
+  } catch (err) {
+    error.value = 'Failed to load purchase orders.'
+  } finally {
+    loading.value = false
   }
-  return orders.value
-})
+}
+
+onMounted(fetchOrders)
 
 function statusClass(status) {
   switch (status) {

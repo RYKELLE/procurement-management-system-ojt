@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\ApprovalController;
+use App\Http\Controllers\Api\PurchaseOrderController;
 use App\Http\Controllers\Api\PurchaseRequestController;
 use Illuminate\Support\Facades\Route;
 use App\Models\Item;
@@ -23,4 +24,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post(('/purchase-requests/{id}/approve'), [ApprovalController::class, 'approve']);
     Route::post('/purchase-requests/{id}/reject', [ApprovalController::class, 'reject']);
+
+    Route::get('/purchase-orders', [PurchaseOrderController::class, 'index']);
+    Route::get('/purchase-orders/{id}', [PurchaseOrderController::class, 'show']);
 });
