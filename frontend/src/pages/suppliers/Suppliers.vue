@@ -33,7 +33,7 @@
               <td colspan="5" class="text-center py-12 text-slate-400 text-sm">No suppliers found.</td>
             </tr>
             <tr v-for="supplier in suppliers" :key="supplier.id" class="hover:bg-slate-50 transition">
-              <td class="px-6 py-4 text-slate-700 font-medium">{{ supplier.supplier_id }}</td>
+              <td class="px-6 py-4 text-slate-700 font-medium">{{ formatSupplierId(supplier) }}</td>
               <td class="px-6 py-4 text-slate-700">{{ supplier.supplier_name }}</td>
               <td class="px-6 py-4 text-slate-500">{{ supplier.contact }}</td>
               <td class="px-6 py-4 text-slate-500">{{ supplier.email }}</td>
@@ -76,7 +76,7 @@
 
           <div class="flex flex-col gap-1.5">
             <label class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Contact Number</label>
-            <input v-model="addModal.form.contact" type="text" placeholder="e.g. +1 (555) 123-4567"
+            <input v-model="addModal.form.contact" type="text" placeholder="e.g. +63 9XX XXX XXXX "
               class="border border-slate-300 px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-slate-500 transition" />
           </div>
 
@@ -151,17 +151,29 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { onMounted, ref, reactive } from 'vue'
+import api from '@/api/axios'
 
 // Dummy data — replace with real API call later
-const suppliers = ref([
-  { id: 1, supplier_id: 'SUP-001', supplier_name: 'ABC Office Supplies', contact: '+1 (555) 123-4567', email: 'john@abcoffice.com' },
-  { id: 2, supplier_id: 'SUP-002', supplier_name: 'TechCorp Inc',         contact: '+1 (555) 234-5678', email: 'sarah@techcorp.com' },
-  { id: 3, supplier_id: 'SUP-003', supplier_name: 'Global Traders',       contact: '+1 (555) 345-6789', email: 'mike@globaltraders.com' },
-  { id: 4, supplier_id: 'SUP-004', supplier_name: 'Office Depot Pro',     contact: '+1 (555) 456-7890', email: 'lisa@officedepot.com' },
-  { id: 5, supplier_id: 'SUP-005', supplier_name: 'Stationery World',     contact: '+1 (555) 567-8901', email: 'david@stationeryworld.com' },
-  { id: 6, supplier_id: 'SUP-006', supplier_name: 'Premium Supplies Co',  contact: '+1 (555) 678-9012', email: 'emma@premiumsupplies.com' },
-])
+const suppliers = ref([])
+
+function formatSupplierId(supplier) {
+  if (supplier?.supplier_id) return supplier.supplier_id
+  if (supplier?.id == null) return ''
+  return `SUP-${String(supplier.id).padStart(3, '0')}`
+}
+
+async function fetchSuppliers() {
+  try {
+    const response = await api.get('/suppliers')
+    suppliers.value = (response.data || []).slice().sort((a, b) => (a?.id ?? 0) - (b?.id ?? 0))
+  } catch (error) {
+    console.error('Failed to load suppliers', error)
+    suppliers.value = []
+  }
+}
+
+onMounted(fetchSuppliers)
 
 // ── Add Modal ────────────────────────────────────────────
 const addModal = reactive({
@@ -191,19 +203,21 @@ async function handleAddSupplier() {
   if (!validateAdd()) return
   addModal.loading = true
   try {
-    // TODO: const response = await api.post('/suppliers', addModal.form)
-    await new Promise(r => setTimeout(r, 600))
-    const newId = suppliers.value.length + 1
-    suppliers.value.push({
-      id: newId,
-      supplier_id: `SUP-${String(newId).padStart(3, '0')}`,
-      supplier_name: addModal.form.supplier_name,
-      contact: addModal.form.contact,
-      email: addModal.form.email,
-    })
+    const response = await api.post('/suppliers', addModal.form)
+    suppliers.value.push(response.data)
+    suppliers.value.sort((a, b) => (a?.id ?? 0) - (b?.id ?? 0))
     addModal.open = false
   } catch (error) {
-    addModal.errors.general = 'Failed to add supplier. Please try again.'
+    console.error('Failed to add supplier', error)
+
+    if (error.response?.status === 422 && error.response?.data?.errors) {
+      const errors = error.response.data.errors
+      if (errors.supplier_name?.[0]) addModal.errors.supplier_name = errors.supplier_name[0]
+      if (errors.email?.[0]) addModal.errors.email = errors.email[0]
+      addModal.errors.general = error.response.data.message || 'Please correct the form and try again.'
+    } else {
+      addModal.errors.general = error.response?.data?.message || 'Failed to add supplier. Please try again.'
+    }
   } finally {
     addModal.loading = false
   }
@@ -219,7 +233,7 @@ const editModal = reactive({
 
 function openEditModal(supplier) {
   editModal.supplierId = supplier.id
-  editModal.form = { supplier_name: supplier.supplier_name, contact: supplier.contact, email: supplier.email }
+  editModal.form = { supplier_name: supplier.supplier_name, contact: supplier.contact || '', email: supplier.email || '' }
   editModal.errors = { email: '', general: '' }
   editModal.open = true
 }
@@ -238,16 +252,26 @@ async function handleEditSupplier() {
   if (!validateEdit()) return
   editModal.loading = true
   try {
-    // TODO: await api.patch(`/suppliers/${editModal.supplierId}`, { contact: editModal.form.contact, email: editModal.form.email })
-    await new Promise(r => setTimeout(r, 600))
+    const response = await api.patch(`/suppliers/${editModal.supplierId}`, {
+      supplier_name: editModal.form.supplier_name,
+      contact: editModal.form.contact,
+      email: editModal.form.email,
+    })
     const target = suppliers.value.find(s => s.id === editModal.supplierId)
     if (target) {
-      target.contact = editModal.form.contact
-      target.email = editModal.form.email
+      Object.assign(target, response.data)
     }
     editModal.open = false
   } catch (error) {
-    editModal.errors.general = 'Failed to save changes. Please try again.'
+    console.error('Failed to save supplier changes', error)
+
+    if (error.response?.status === 422 && error.response?.data?.errors) {
+      const errors = error.response.data.errors
+      if (errors.email?.[0]) editModal.errors.email = errors.email[0]
+      editModal.errors.general = error.response.data.message || 'Please correct the form and try again.'
+    } else {
+      editModal.errors.general = error.response?.data?.message || 'Failed to save changes. Please try again.'
+    }
   } finally {
     editModal.loading = false
   }

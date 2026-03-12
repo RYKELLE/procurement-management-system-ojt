@@ -100,7 +100,8 @@ const routes = [
       {
         path: 'suppliers',
         name: 'Suppliers',
-        component: () => import('@/pages/suppliers/Suppliers.vue')
+        component: () => import('@/pages/suppliers/Suppliers.vue'),
+        meta: { keepAlive: true }
       },
     ]
   },

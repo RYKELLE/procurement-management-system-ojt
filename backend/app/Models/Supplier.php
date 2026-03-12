@@ -9,11 +9,22 @@ class Supplier extends Model
 {
   use HasFactory;
 
+  protected $appends = ['supplier_id'];
+
   protected $fillable = [
     'supplier_name',
     'contact',
     'email'
   ];
+
+  public function getSupplierIdAttribute(): ?string
+  {
+    if (!$this->id) {
+      return null;
+    }
+
+    return 'SUP-' . str_pad((string) $this->id, 3, '0', STR_PAD_LEFT);
+  }
 
   public function items()
   {
