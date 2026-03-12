@@ -2,6 +2,17 @@
 
 return [
 
+    /*
+     * By default, Spatie will try to determine the guard to use based on the
+     * current authentication context. Since this app uses Sanctum for API auth
+     * but stores roles/permissions under the `web` guard, we explicitly default
+     * to `web` to avoid guard mismatch errors (e.g. "role does not exist for guard sanctum").
+     */
+
+    'defaults' => [
+        'guard_name' => 'web',
+    ],
+
     'models' => [
 
         /*

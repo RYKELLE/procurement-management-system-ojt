@@ -51,7 +51,7 @@ class UserManagementController extends Controller
       'name' => ['required', 'string', 'max:255'],
       'email' => ['required', 'email', 'max:255', 'unique:users,email'],
       'password' => ['required', 'string', 'min:8'],
-      'role' => ['present', 'string', Rule::exists($rolesTable, 'name')],
+      'role' => ['required', 'string', Rule::exists($rolesTable, 'name')],
     ]);
 
     $user = User::create([
@@ -85,11 +85,11 @@ class UserManagementController extends Controller
     $rolesTable = config('permission.table_names.roles') ?? 'roles';
 
     $validated = $request->validate([
-      'role' => ['present', 'string', Rule::exists($rolesTable, 'name')],
+      'role' => ['required', 'string', Rule::exists($rolesTable, 'name')],
     ]);
 
     $roleName = strtolower($validated['role']);
-    $role = Role::findByName($roleName);
+    $role = Role::findByName($roleName, 'web');
     $user->syncRoles([$role]);
 
     return response()->json([
