@@ -31,6 +31,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'view-invoices',  
             'manage-users',
             'manage-roles',
+            'view-suppliers',
+            'manage-suppliers',
         ];
 
         foreach ($permissions as $permission) {
@@ -55,6 +57,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'view-purchase-orders',  // new
             'view-invoices',
         ]);
+
+        //TO DO create suppliers
+        
 
         //create users
         $adminUser = User::firstOrCreate(

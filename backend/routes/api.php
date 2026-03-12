@@ -4,6 +4,8 @@ use App\Http\Controllers\Api\ApprovalController;
 use App\Http\Controllers\Api\PurchaseOrderController;
 use App\Http\Controllers\Api\PurchaseRequestController;
 use App\Http\Controllers\Api\InvoiceController;
+use App\Http\Controllers\Api\RoleManagementController;
+use App\Http\Controllers\Api\UserManagementController;
 use Illuminate\Support\Facades\Route;
 use App\Models\Item;
 use App\Http\Controllers\Api\AuthController;
@@ -38,4 +40,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/suppliers', [SupplierController::class, 'index']);
     Route::post('/suppliers', [SupplierController::class, 'store']);
     Route::patch('/suppliers/{supplier}', [SupplierController::class, 'update']);
+
+    Route::get('/users', [UserManagementController::class, 'index']);
+    Route::post('/users', [UserManagementController::class, 'store']);
+    Route::patch('/users/{user}/role', [UserManagementController::class, 'updateRole']);
+    Route::patch('/users/{user}/permissions', [UserManagementController::class, 'updatePermissions']);
+    Route::delete('/users/{user}', [UserManagementController::class, 'destroy']);
+
+    Route::get('/roles', [RoleManagementController::class, 'index']);
+    Route::patch('/roles/{role}/permissions', [RoleManagementController::class, 'updatePermissions']);
 });

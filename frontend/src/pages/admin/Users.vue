@@ -101,7 +101,7 @@
                             class="border border-slate-300 px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-slate-500 transition"
                             :class="{ 'border-red-400': addModal.errors.email }" @input="addModal.errors.email = ''" />
                         <span v-if="addModal.errors.email" class="text-xs text-red-500">{{ addModal.errors.email
-                        }}</span>
+                            }}</span>
                     </div>
 
                     <div class="flex flex-col gap-1.5">
@@ -112,7 +112,7 @@
                             :class="{ 'border-red-400': addModal.errors.password }"
                             @input="addModal.errors.password = ''" />
                         <span v-if="addModal.errors.password" class="text-xs text-red-500">{{ addModal.errors.password
-                        }}</span>
+                            }}</span>
                     </div>
 
                     <div class="flex flex-col gap-1.5">
@@ -212,17 +212,23 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { onMounted, ref, reactive } from 'vue'
 import api from '@/api/axios'
 
 // Dummy data — replace with real API call later
-const users = ref([
-    { id: 1, name: 'John Doe', email: 'john@company.com', role: 'staff', permissions: ['create-purchase-request', 'view-own-purchase-request', 'submit-purchase-request', 'view-purchase-orders', 'view-invoices'] },
-    { id: 2, name: 'Jane Smith', email: 'jane@company.com', role: 'approver', permissions: ['approve-purchase-request', 'reject-purchase-request', 'view-all-purchase-requests'] },
-    { id: 3, name: 'Bob Wilson', email: 'bob@company.com', role: 'staff', permissions: ['create-purchase-request', 'view-own-purchase-request', 'submit-purchase-request', 'view-purchase-orders', 'view-invoices'] },
-    { id: 4, name: 'Alice Brown', email: 'alice@company.com', role: 'admin', permissions: [] },
-    { id: 5, name: 'Sarah Davis', email: 'sarah@company.com', role: 'staff', permissions: ['create-purchase-request', 'view-own-purchase-request', 'submit-purchase-request', 'view-purchase-orders', 'view-invoices'] },
-])
+const users = ref([])
+
+async function fetchUsers() {
+    try {
+        const response = await api.get('/users')
+        users.value = response.data
+    } catch (error) {
+        console.error('Failed to load users', error)
+        users.value = []
+    }
+}
+
+onMounted(fetchUsers)
 
 // Full permissions list — update when you finalize them
 const allPermissions = [
@@ -238,15 +244,19 @@ const allPermissions = [
     'view-invoices',
     'manage-users',
     'manage-roles',
+    'view-suppliers',
+    'manage-suppliers',
 ]
 
 // ── Role Change ──────────────────────────────────────────
 async function handleRoleChange(user) {
     try {
-        await api.patch(`/users/${user.id}/role`, { role: user.role })
+        const response = await api.patch(`/users/${user.id}/role`, { role: user.role })
+        Object.assign(user, response.data)
         console.log(`Role updated: ${user.name} → ${user.role}`)
     } catch (error) {
         console.error('Failed to update role', error)
+        await fetchUsers()
     }
 }
 
@@ -280,9 +290,9 @@ async function handleAddUser() {
     if (!validateAdd()) return
     addModal.loading = true
     try {
-        // TODO: const response = await api.post('/users', addModal.form)
-        await new Promise(r => setTimeout(r, 600))
-        users.value.push({ id: Date.now(), name: addModal.form.name, email: addModal.form.email, role: addModal.form.role, permissions: [] })
+        const response = await api.post('/users', addModal.form)
+        users.value.push(response.data)
+        users.value.sort((a, b) => (a?.id ?? 0) - (b?.id ?? 0))
         addModal.open = false
     } catch (error) {
         addModal.errors.general = 'Failed to add user. Please try again.'
@@ -310,10 +320,12 @@ async function handleSavePermissions() {
     editModal.loading = true
     editModal.errors.general = ''
     try {
-        // TODO: await api.patch(`/users/${editModal.user.id}/permissions`, { permissions: editModal.selectedPermissions })
-        await new Promise(r => setTimeout(r, 600))
+        const plainPermissions = [...editModal.selectedPermissions] // convert Proxy to plain array
+        const response = await api.patch(`/users/${editModal.user.id}/permissions`, { 
+            permissions: plainPermissions 
+        })
         const target = users.value.find(u => u.id === editModal.user.id)
-        if (target) target.permissions = [...editModal.selectedPermissions]
+        if (target) target.permissions = response.data.permissions || plainPermissions
         editModal.open = false
     } catch (error) {
         editModal.errors.general = 'Failed to save permissions. Please try again.'
@@ -335,8 +347,7 @@ async function handleDeleteUser() {
     deleteModal.loading = true
     deleteModal.error = ''
     try {
-        // TODO: await api.delete(`/users/${deleteModal.user.id}`)
-        await new Promise(r => setTimeout(r, 600))
+        await api.delete(`/users/${deleteModal.user.id}`)
         users.value = users.value.filter(u => u.id !== deleteModal.user.id)
         deleteModal.open = false
     } catch (error) {

@@ -68,7 +68,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
+import api from '@/api/axios'
 
 const allPermissions = [
   { key: 'create-purchase-request',   label: 'Create Purchase Requests' },
@@ -83,59 +84,28 @@ const allPermissions = [
   { key: 'view-invoices',             label: 'View Invoices' },
   { key: 'manage-users',              label: 'Manage Users' },
   { key: 'manage-roles',              label: 'Manage Roles' },  
+  { key: 'view-suppliers',            label: 'View Suppliers' },
+  { key: 'manage-suppliers',          label: 'Manage Suppliers' },
 ]
 
-const roles = ref([
-  {
-    name: 'Admin',
-    key: 'admin',
-    saving: false,
-    saved: false,
-    permissions: [
-      'create-purchase-request',
-      'view-own-purchase-request',
-      'view-all-purchase-requests',
-      'submit-purchase-request',
-      'approve-purchase-request',
-      'reject-purchase-request',
-      'manage-purchase-orders',
-      'manage-invoices',
-      'view-purchase-orders',
-      'view-invoices',
-      'manage-users',
-      'manage-roles',
-    ],
-  },
-  {
-    name: 'Approver',
-    key: 'approver',
-    saving: false,
-    saved: false,
-    permissions: [
-      'create-purchase-request',
-      'view-own-purchase-request',
-      'view-all-purchase-requests',
-      'submit-purchase-request',
-      'approve-purchase-request',
-      'reject-purchase-request',
-      'view-purchase-orders',
-      'view-invoices',
-    ],
-  },
-  {
-    name: 'Staff',
-    key: 'staff',
-    saving: false,
-    saved: false,
-    permissions: [
-      'create-purchase-request',
-      'view-own-purchase-request',
-      'submit-purchase-request',
-      'view-purchase-orders',
-      'view-invoices',
-    ],
-  },
-])
+const roles = ref([])
+
+async function fetchRoles() {
+  try {
+    const response = await api.get('/roles')
+    roles.value = (response.data || []).map(role => ({
+      ...role,
+      saving: false,
+      saved: false,
+      permissions: role.permissions || [],
+    }))
+  } catch (error) {
+    console.error('Failed to load roles', error)
+    roles.value = []
+  }
+}
+
+onMounted(fetchRoles)
 
 function togglePermission(role, permissionKey) {
   const index = role.permissions.indexOf(permissionKey)
@@ -151,11 +121,11 @@ async function handleSave(role) {
   role.saving = true
   role.saved = false
   try {
-    // TODO: replace with real API call
-    // await api.patch(`/roles/${role.key}/permissions`, {
-    //   permissions: role.permissions
-    // })
-    await new Promise(r => setTimeout(r, 600))
+    const plainPermissions = JSON.parse(JSON.stringify(role.permissions)) // deep clone
+    console.log('Sending:', plainPermissions)
+    await api.patch(`/roles/${role.key}/permissions`, {
+      permissions: plainPermissions
+    })
     role.saved = true
     setTimeout(() => { role.saved = false }, 3000)
   } catch (error) {
