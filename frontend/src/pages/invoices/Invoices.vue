@@ -13,11 +13,11 @@
         <table class="w-full text-sm">
           <thead class="bg-slate-100 border-b border-slate-800 sticky top-0">
             <tr>
-              <th class="text-left px-6 py-4 font-bold text-slate-700 uppercase tracking-wide text-xs w-32">Invoice ID</th>
-              <th class="text-left px-6 py-4 font-bold text-slate-700 uppercase tracking-wide text-xs w-36">Linked Order ID</th>
-              <th class="text-left px-6 py-4 font-bold text-slate-700 uppercase tracking-wide text-xs w-32">Amount</th>
-              <th class="text-left px-6 py-4 font-bold text-slate-700 uppercase tracking-wide text-xs w-36">Due Date</th>
-              <th class="text-left px-6 py-4 font-bold text-slate-700 uppercase tracking-wide text-xs w-36">Status</th>
+              <th class="text-left px-6 py-4 font-bold text-slate-700 uppercase tracking-wide text-xs">Invoice ID</th>
+              <th class="text-left px-6 py-4 font-bold text-slate-700 uppercase tracking-wide text-xs">Linked Order ID</th>
+              <th class="text-left px-6 py-4 font-bold text-slate-700 uppercase tracking-wide text-xs">Amount</th>
+              <th class="text-left px-6 py-4 font-bold text-slate-700 uppercase tracking-wide text-xs">Due Date</th>
+              <th class="text-left px-6 py-4 font-bold text-slate-700 uppercase tracking-wide text-xs">Status</th>
               <th class="text-left px-6 py-4 font-bold text-slate-700 uppercase tracking-wide text-xs">Actions</th>
             </tr>
           </thead>
