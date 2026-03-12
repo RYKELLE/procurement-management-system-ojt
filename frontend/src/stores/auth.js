@@ -41,7 +41,10 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function hasPermission(permission) {
-    return permissions.value.includes(permission)
+    const role = (user.value?.role || '').toLowerCase()
+    if (role === 'admin') return true
+
+    return Array.isArray(permissions.value) && permissions.value.includes(permission)
   }
 
   return { token, user, permissions, isLoggedIn, userRole, setAuth, clearAuth, hasPermission }

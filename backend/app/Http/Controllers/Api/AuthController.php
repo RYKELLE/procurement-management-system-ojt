@@ -22,7 +22,8 @@ class AuthController extends Controller
         $user = Auth::user();
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        $perms = $user->getAllPermissions()->pluck('name');
+        // Return a plain JSON array of permission strings for the SPA.
+        $perms = $user->getAllPermissions()->pluck('name')->values()->all();
 
         return response()->json([
             'token' => $token,
@@ -48,7 +49,7 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         $user = $request->user();
-        $perms = $user->getAllPermissions()->pluck('name');
+        $perms = $user->getAllPermissions()->pluck('name')->values()->all();
 
         return response()->json([
             'id' => $user->id,

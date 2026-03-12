@@ -27,9 +27,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'reject-purchase-request',
             'manage-purchase-orders',
             'manage-invoices',
-            'manage-roles',
-            'assign-roles',
-            'update-permissions'
+            'view-purchase-orders', 
+            'view-invoices',  
+            'manage-users',
+            'update-permissions',
         ];
 
         foreach ($permissions as $permission) {
@@ -51,6 +52,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'create-purchase-request',
             'view-own-purchase-request',
             'submit-purchase-request',
+            'view-purchase-orders',  // new
+            'view-invoices',
         ]);
 
         //create users
