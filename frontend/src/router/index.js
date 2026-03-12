@@ -101,7 +101,7 @@ const routes = [
         path: 'suppliers',
         name: 'Suppliers',
         component: () => import('@/pages/suppliers/Suppliers.vue'),
-        meta: { keepAlive: true }
+        meta: { keepAlive: true, permission: 'view-suppliers' }
       },
     ]
   },

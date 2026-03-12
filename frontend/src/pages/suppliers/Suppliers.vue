@@ -9,7 +9,9 @@
       </div>
       <button
         @click="openAddModal"
+        :disabled="!canManageSuppliers()"
         class="bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold tracking-widest uppercase px-6 py-4 transition whitespace-nowrap"
+        :class="{ 'opacity-60 cursor-not-allowed': !canManageSuppliers() }"
       >
         + Add Supplier
       </button>
@@ -41,7 +43,9 @@
                 <div class="flex items-center gap-2">
                   <button
                     @click="openEditModal(supplier)"
+                    :disabled="!canManageSuppliers()"
                     class="border border-slate-300 text-slate-700 text-xs font-bold uppercase tracking-wide px-4 py-1.5 hover:bg-slate-50 transition"
+                    :class="{ 'opacity-60 cursor-not-allowed': !canManageSuppliers() }"
                   >
                     Edit
                   </button>
@@ -153,6 +157,10 @@
 <script setup>
 import { onMounted, ref, reactive } from 'vue'
 import api from '@/api/axios'
+import { useAuthStore } from '@/stores/auth'
+
+const auth = useAuthStore()
+const canManageSuppliers = () => auth.hasPermission('manage-suppliers')
 
 // Dummy data — replace with real API call later
 const suppliers = ref([])
@@ -183,6 +191,7 @@ const addModal = reactive({
 })
 
 function openAddModal() {
+  if (!canManageSuppliers()) return
   addModal.form = { supplier_name: '', contact: '', email: '' }
   addModal.errors = { supplier_name: '', email: '', general: '' }
   addModal.open = true
@@ -200,6 +209,7 @@ function validateAdd() {
 }
 
 async function handleAddSupplier() {
+  if (!canManageSuppliers()) return
   if (!validateAdd()) return
   addModal.loading = true
   try {
@@ -232,6 +242,7 @@ const editModal = reactive({
 })
 
 function openEditModal(supplier) {
+  if (!canManageSuppliers()) return
   editModal.supplierId = supplier.id
   editModal.form = { supplier_name: supplier.supplier_name, contact: supplier.contact || '', email: supplier.email || '' }
   editModal.errors = { email: '', general: '' }
@@ -249,6 +260,7 @@ function validateEdit() {
 }
 
 async function handleEditSupplier() {
+  if (!canManageSuppliers()) return
   if (!validateEdit()) return
   editModal.loading = true
   try {
