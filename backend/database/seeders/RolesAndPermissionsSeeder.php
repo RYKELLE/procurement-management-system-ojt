@@ -27,8 +27,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'reject-purchase-request',
             'manage-purchase-orders',
             'manage-invoices',
-            'view-purchase-orders', 
-            'view-invoices',  
+            'view-purchase-orders',
+            'view-invoices',
             'manage-users',
             'manage-roles',
             'view-suppliers',
@@ -46,7 +46,10 @@ class RolesAndPermissionsSeeder extends Seeder
         $approver->syncPermissions([ //approver permissions
             'approve-purchase-request',
             'reject-purchase-request',
-            'view-all-purchase-requests'
+            'view-all-purchase-requests',
+            'view-purchase-orders',
+            'view-invoices',
+            'view-suppliers'
         ]);
 
         $staff = Role::firstOrCreate(['name' => 'staff']); //normal staff
@@ -59,7 +62,7 @@ class RolesAndPermissionsSeeder extends Seeder
         ]);
 
         //TO DO create suppliers
-        
+
 
         //create users
         $adminUser = User::firstOrCreate(
