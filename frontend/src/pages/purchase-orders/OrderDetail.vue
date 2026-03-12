@@ -101,8 +101,16 @@
 
     <!-- Action Buttons -->
     <div class="flex items-center gap-4 pb-6">
+      <button
+        v-if="order.status === 'active'"
+        @click="markAsCompleted"
+        class="bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold uppercase tracking-widest px-10 py-4 transition"
+      >
+        Mark as Completed
+      </button>
       <RouterLink
-        :to="`/invoices`"
+        v-if="order.status === 'completed'"
+        :to="`/invoices/${order.id}`"
         class="bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold uppercase tracking-widest px-10 py-4 transition"
       >
         View Invoice
@@ -149,6 +157,16 @@ const totalAmount = computed(() => {
     return sum + item.item_quantity * item.unit_price;
   }, 0)
 })
+
+async function markAsCompleted(){
+  try{
+    const response = await api.post(`purchase-orders/${route.params.id}/complete`);
+    order.value.status = 'completed';
+  }catch(err){
+    alert('Failed');
+  }
+
+}
 
 
 

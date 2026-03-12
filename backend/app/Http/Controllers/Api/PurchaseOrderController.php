@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\PurchaseOrder;
+use App\Models\Invoice;
 use Illuminate\Support\Facades\Auth;
 
 class PurchaseOrderController extends Controller
@@ -40,5 +41,27 @@ class PurchaseOrderController extends Controller
     }
 
     return response()->json($order);
+  }
+
+  public function markAsCompleted($id)
+  {
+    $purchaseOrder = PurchaseOrder::with('purchaseRequest.items')
+      ->findOrFail($id);
+
+    if ($purchaseOrder->status !== 'active') {
+      return response()->json(['message' => 'Only active orders can be marked as paid'], 422);
+    }
+
+    $purchaseOrder->update(['status' => 'completed']);
+
+    Invoice::create([
+      'order_id' => $purchaseOrder->id,
+      'processed_by' => Auth::user()->id,
+      'status' => 'unpaid',
+      'order_total_amount' => $purchaseOrder->amount,
+      'due_date' => now()->addDays(15),
+    ]);
+
+    return response()->json($purchaseOrder);
   }
 }
