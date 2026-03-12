@@ -116,7 +116,7 @@
         View Invoice
       </RouterLink>
       <RouterLink
-        to="/purchase-orders"
+        :to="`/invoices/${order.invoice_id}`"
         class="border border-slate-800 text-slate-800 hover:bg-slate-100 text-sm font-bold uppercase tracking-widest px-10 py-4 transition"
       >
         Back to List
@@ -161,7 +161,8 @@ const totalAmount = computed(() => {
 async function markAsCompleted(){
   try{
     const response = await api.post(`purchase-orders/${route.params.id}/complete`);
-    order.value.status = 'completed';
+    order.value.status = 'completed'
+    order.value.invoice_id = response.data.invoice.id
   }catch(err){
     alert('Failed');
   }

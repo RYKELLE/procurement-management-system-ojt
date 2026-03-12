@@ -30,10 +30,10 @@
               :key="invoice.id"
               class="hover:bg-slate-50 transition"
             >
-              <td class="px-6 py-4 text-slate-700 font-medium">{{ invoice.invoice_id }}</td>
-              <td class="px-6 py-4 text-slate-700">{{ invoice.linked_order_id }}</td>
-              <td class="px-6 py-4 text-slate-700">${{ invoice.amount.toFixed(2) }}</td>
-              <td class="px-6 py-4 text-slate-500">{{ invoice.due_date }}</td>
+              <td class="px-6 py-4 text-slate-700 font-medium">{{ invoice.id }}</td>
+              <td class="px-6 py-4 text-slate-700">{{ invoice.order_id }}</td>
+              <td class="px-6 py-4 text-slate-700">${{ Number(invoice.amount).toFixed(2) }}</td>
+              <td class="px-6 py-4 text-slate-500">{{ invoice.due_date.slice(0, 10) }}</td>
               <td class="px-6 py-4">
                 <span
                   class="border text-xs font-semibold uppercase tracking-wide px-3 py-1.5"
@@ -69,35 +69,41 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import api from '../../api/axios'
 
-const auth = useAuthStore()
+const auth = useAuthStore();
+
+const invoices = ref([]);
+const loading = ref(true);
+const error = ref(null);
+
+async function fetchInvoices(){
+  try{
+    const response = await api.get('/invoices')
+    invoices.value = response.data;
+    console.log(response.data);
+  }catch(err){
+    error.value = 'Failed'
+  }finally{
+    loading.value = false;
+  }
+}
+
+onMounted(fetchInvoices)
 
 // Only admin can mark invoices as paid
 const canMarkAsPaid = computed(() => {
   return (auth.user?.role || '').toLowerCase() === 'admin'
 })
 
-// Dummy data — replace with real API call later
-const invoices = ref([
-  { id: 89, invoice_id: 'INV-00089', linked_order_id: 'PO-00121', amount: 890.50,  due_date: '2026-03-15', status: 'paid'    },
-  { id: 88, invoice_id: 'INV-00088', linked_order_id: 'PO-00120', amount: 2100.00, due_date: '2026-03-12', status: 'unpaid'  },
-  { id: 87, invoice_id: 'INV-00087', linked_order_id: 'PO-00119', amount: 675.25,  due_date: '2026-03-01', status: 'overdue' },
-  { id: 86, invoice_id: 'INV-00086', linked_order_id: 'PO-00118', amount: 1540.00, due_date: '2026-03-10', status: 'unpaid'  },
-  { id: 85, invoice_id: 'INV-00085', linked_order_id: 'PO-00117', amount: 3200.00, due_date: '2026-02-28', status: 'overdue' },
-  { id: 84, invoice_id: 'INV-00084', linked_order_id: 'PO-00116', amount: 945.00,  due_date: '2026-03-08', status: 'paid'    },
-])
-
 async function handleMarkAsPaid(invoice) {
   try {
-    // TODO: replace with real API call
-    // await api.post(`/invoices/${invoice.id}/pay`)
-
-    // Update status locally for now
+    await api.post(`/invoices/${invoice.id}/paid`);
     invoice.status = 'paid'
   } catch (error) {
-    console.error('Failed to mark as paid', error)
+    alert('Failed to mark as paid');
   }
 }
 

@@ -54,14 +54,17 @@ class PurchaseOrderController extends Controller
 
     $purchaseOrder->update(['status' => 'completed']);
 
-    Invoice::create([
+    $invoice = Invoice::create([
       'order_id' => $purchaseOrder->id,
       'processed_by' => Auth::user()->id,
       'status' => 'unpaid',
-      'order_total_amount' => $purchaseOrder->amount,
+      'amount' => $purchaseOrder->order_total_amount,
       'due_date' => now()->addDays(15),
     ]);
 
-    return response()->json($purchaseOrder);
+    return response()->json([
+      'purchase_order' => $purchaseOrder,
+      'invoice' => $invoice,
+    ]);
   }
 }

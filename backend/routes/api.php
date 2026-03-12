@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\ApprovalController;
 use App\Http\Controllers\Api\PurchaseOrderController;
 use App\Http\Controllers\Api\PurchaseRequestController;
+use App\Http\Controllers\Api\InvoiceController;
 use Illuminate\Support\Facades\Route;
 use App\Models\Item;
 use App\Http\Controllers\Api\AuthController;
@@ -28,5 +29,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/purchase-orders', [PurchaseOrderController::class, 'index']);
     Route::get('/purchase-orders/{id}', [PurchaseOrderController::class, 'show']);
     Route::post('/purchase-orders/{id}/complete', [PurchaseOrderController::class, 'markAsCompleted']);
+
+    Route::get('/invoices', [InvoiceController::class, 'index']);
+    Route::get('/invoices/{id}', [InvoiceController::class, 'show']);
+    Route::post('/invoices/{id}/paid', [InvoiceController::class, 'markAsPaid']);
 
 });

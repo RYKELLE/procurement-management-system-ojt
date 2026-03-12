@@ -17,6 +17,10 @@ class PurchaseOrder extends Model
     'status',
   ];
 
+  protected $casts = [
+    'order_total_amount' => 'decimal:2',
+  ];
+
   public function purchaseRequest()
   {
     return $this->belongsTo(PurchaseRequest::class, 'request_id');
