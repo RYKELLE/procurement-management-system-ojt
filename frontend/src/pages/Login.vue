@@ -48,7 +48,7 @@
         <button
           type="submit"
           :disabled="loading"
-          class="mt-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-sm py-2.5 rounded transition"
+          class="mt-2 bg-black hover:bg-gray-900 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-sm py-2.5 rounded transition"
         >
           {{ loading ? 'Signing in...' : 'Sign In' }}
         </button>
