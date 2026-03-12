@@ -1,10 +1,14 @@
 <template>
-  <div class="flex flex-col gap-6">
+  <div v-if="loading">Loading...</div>
+
+  <div v-else-if="error">{{ error }}</div>
+
+  <div v-else-if="invoice" class="flex flex-col gap-6">
 
     <!-- Header -->
     <div>
       <h1 class="text-2xl font-bold text-slate-800 tracking-wide">INVOICE DETAIL</h1>
-      <p class="text-sm text-slate-500 mt-1">{{ invoice.invoice_id }}</p>
+      <p class="text-sm text-slate-500 mt-1">{{ invoice.id }}</p>
     </div>
 
     <!-- Info Cards -->
@@ -16,19 +20,19 @@
         <div class="flex flex-col gap-4">
           <div>
             <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Invoice ID</div>
-            <div class="text-sm text-slate-800">{{ invoice.invoice_id }}</div>
+            <div class="text-sm text-slate-800">{{ invoice.id }}</div>
           </div>
           <div>
             <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Linked Purchase Order</div>
-            <div class="text-sm text-slate-800">{{ invoice.linked_order_id }}</div>
+            <div class="text-sm text-slate-800">{{ invoice.order_id }}</div>
           </div>
           <div>
             <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Date Created</div>
-            <div class="text-sm text-slate-800">{{ invoice.date_created }}</div>
+            <div class="text-sm text-slate-800">{{ invoice.created_at.slice(0, 10) }}</div>
           </div>
           <div>
             <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Processed By</div>
-            <div class="text-sm text-slate-800">{{ invoice.processed_by }}</div>
+            <div class="text-sm text-slate-800">{{ invoice.processor.name }}</div>
           </div>
         </div>
       </div>
@@ -39,11 +43,11 @@
         <div class="flex flex-col gap-4">
           <div>
             <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Amount Due</div>
-            <div class="text-3xl font-bold text-slate-800">${{ invoice.amount.toFixed(2) }}</div>
+            <div class="text-3xl font-bold text-slate-800">${{ Number(invoice.amount).toFixed(2) }}</div>
           </div>
           <div>
             <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Due Date</div>
-            <div class="text-sm text-slate-800">{{ invoice.due_date }}</div>
+            <div class="text-sm text-slate-800">{{ invoice.due_date.slice(0, 10) }}</div>
           </div>
           <div>
             <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Status</div>
@@ -152,27 +156,34 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useRoute } from 'vue-router'
 import api from '@/api/axios'
 
-const auth = useAuthStore()
+const auth = useAuthStore();
+const route = useRoute();
+
+const invoice = ref(null);
+const loading = ref(true);
+const error = ref(null);
 
 const isAdmin = computed(() => {
   return (auth.user?.role || '').toLowerCase() === 'admin'
 })
 
-// Dummy data — replace with real API call using route.params.id later
-const invoice = reactive({
-  id: 88,
-  invoice_id: 'INV-00088',
-  linked_order_id: 'PO-00120',
-  date_created: '2026-03-05',
-  processed_by: 'Jane Smith',
-  amount: 2100.00,
-  due_date: '2026-03-12',
-  status: 'unpaid',
-})
+async function fetchInvoice (){
+  try{
+    const response = await api.get(`/invoices/${route.params.id}`);
+    invoice.value = response.data;
+  }catch(err){
+    error.value = 'Failed to fetch invoice';
+  }finally{
+    loading.value = false;
+  }
+}
+
+onMounted(fetchInvoice);
 
 const today = new Date().toISOString().split('T')[0]
 
@@ -188,8 +199,6 @@ const errors = reactive({
   payment_method: '',
   general: '',
 })
-
-const loading = ref(false)
 
 function validate() {
   let valid = true
@@ -218,16 +227,9 @@ async function handleRecordPayment() {
 
   loading.value = true
   try {
-    // TODO: replace with real API call
-    // await api.post(`/invoices/${invoice.id}/pay`, {
-    //   amount_paid: form.amount_paid,
-    //   payment_date: form.payment_date,
-    //   payment_method: form.payment_method,
-    // })
-
-    // Simulate for now
+    await api.post (`/invoices/${route.params.id}/paid`)
     await new Promise(r => setTimeout(r, 800))
-    invoice.status = 'paid'
+    invoice.value.status = 'paid'
 
   } catch (error) {
     errors.general = 'Failed to record payment. Please try again.'
