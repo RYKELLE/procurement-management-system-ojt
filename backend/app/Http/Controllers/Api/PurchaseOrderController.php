@@ -32,7 +32,7 @@ class PurchaseOrderController extends Controller
   {
     $user = Auth::user();
 
-    $order = PurchaseOrder::with('purchaseRequest.items.item', 'purchaseRequest.requester', 'suppliers')
+    $order = PurchaseOrder::with('purchaseRequest.items.item', 'purchaseRequest.requester', 'supplier')
       ->findOrFail($id);
 
     if ($user->hasRole('staff') && $order->purchaseRequest->requested_by !== $user->id) {

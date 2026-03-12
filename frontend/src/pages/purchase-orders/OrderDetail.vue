@@ -1,10 +1,14 @@
 <template>
-  <div class="flex flex-col gap-6">
+  <div v-if="loading">Loading...</div>
+
+  <div v-else-if="error">{{ error }}</div>
+
+  <div v-else-if="order" class="flex flex-col gap-6">
 
     <!-- Header -->
     <div>
       <h1 class="text-2xl font-bold text-slate-800 tracking-wide">PURCHASE ORDER DETAIL</h1>
-      <p class="text-sm text-slate-500 mt-1">{{ order.order_id }}</p>
+      <p class="text-sm text-slate-500 mt-1">{{ order.id }}</p>
     </div>
 
     <!-- Info Cards -->
@@ -16,7 +20,7 @@
         <div class="flex flex-col gap-4">
           <div>
             <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Name</div>
-            <div class="text-sm text-slate-800">{{ order.supplier.name }}</div>
+            <div class="text-sm text-slate-800">{{ order.supplier.supplier_name }}</div>
           </div>
           <div>
             <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Contact Person</div>
@@ -28,7 +32,7 @@
           </div>
           <div>
             <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Phone</div>
-            <div class="text-sm text-slate-800">{{ order.supplier.phone }}</div>
+            <div class="text-sm text-slate-800">(248) 762-0356</div>
           </div>
         </div>
       </div>
@@ -39,15 +43,15 @@
         <div class="flex flex-col gap-4">
           <div>
             <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Order ID</div>
-            <div class="text-sm text-slate-800">{{ order.order_id }}</div>
+            <div class="text-sm text-slate-800">{{ order.id }}</div>
           </div>
           <div>
             <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Linked Request ID</div>
-            <div class="text-sm text-slate-800">{{ order.linked_request_id }}</div>
+            <div class="text-sm text-slate-800">{{ order.request_id }}</div>
           </div>
           <div>
             <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Date Created</div>
-            <div class="text-sm text-slate-800">{{ order.date_created }}</div>
+            <div class="text-sm text-slate-800">{{ order.created_at.slice(0, 10) }}</div>
           </div>
           <div>
             <div class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Status</div>
@@ -78,18 +82,18 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
-          <tr v-for="(item, index) in order.items" :key="index" class="hover:bg-slate-50">
-            <td class="px-6 py-4 text-slate-700">{{ item.name }}</td>
-            <td class="px-6 py-4 text-slate-700 text-right">{{ item.quantity }}</td>
-            <td class="px-6 py-4 text-slate-700 text-right">${{ item.unit_price.toFixed(2) }}</td>
-            <td class="px-6 py-4 text-slate-700 text-right">${{ (item.quantity * item.unit_price).toFixed(2) }}</td>
+          <tr v-for="(item, index) in order.purchase_request.items" :key="index" class="hover:bg-slate-50">
+            <td class="px-6 py-4 text-slate-700">{{ item.item.item_name }}</td>
+            <td class="px-6 py-4 text-slate-700 text-right">{{ item.item_quantity }}</td>
+            <td class="px-6 py-4 text-slate-700 text-right">${{ Number(item.unit_price).toFixed(2) }}</td>
+            <td class="px-6 py-4 text-slate-700 text-right">${{ (item.item_quantity * Number(item.unit_price)).toFixed(2) }}</td>
           </tr>
         </tbody>
         <tfoot>
           <tr class="bg-slate-100 border-t border-slate-200">
             <td colspan="2" class="px-6 py-4"></td>
             <td class="px-6 py-4 text-right text-sm font-bold text-slate-700 uppercase tracking-wide">Total Amount:</td>
-            <td class="px-6 py-4 text-right text-sm font-bold text-slate-800">${{ totalAmount.toFixed(2) }}</td>
+            <td class="px-6 py-4 text-right text-sm font-bold text-slate-800">${{ Number(totalAmount).toFixed(2) }}</td>
           </tr>
         </tfoot>
       </table>
@@ -115,34 +119,38 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed,onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import api from '@/api/axios'
 
 const route = useRoute()
 
-// Dummy data — replace with real API call using route.params.id later
-const order = {
-  id: 123,
-  order_id: 'PO-00123',
-  linked_request_id: 'PR-00044',
-  date_created: '2026-03-03',
-  status: 'active',
-  supplier: {
-    name: 'ABC Office Supplies',
-    contact: 'John Smith',
-    email: 'john@abcoffice.com',
-    phone: '+1 (555) 123-4567',
-  },
-  items: [
-    { name: 'Office Chair', quantity: 5,  unit_price: 150.00 },
-    { name: 'Desk Lamp',    quantity: 10, unit_price: 45.00  },
-    { name: 'USB Cable',    quantity: 20, unit_price: 12.00  },
-  ]
+const order = ref(null);
+const loading = ref(true);
+const error = ref(null);
+
+async function fetchOrder() {
+  try{
+    const response = await api.get(`/purchase-orders/${route.params.id}`)
+    order.value = response.data;
+    console.log(order.value)
+  }catch(err){
+    error.value = 'Failed to load Purchase Order'
+  }finally{
+    loading.value = false;
+  }
 }
 
+onMounted(fetchOrder);
+
 const totalAmount = computed(() => {
-  return order.items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0)
+  if(!order.value) return 0
+  return order.value.purchase_request.items.reduce((sum, item) => {
+    return sum + item.item_quantity * item.unit_price;
+  }, 0)
 })
+
+
 
 function statusClass(status) {
   switch (status) {
