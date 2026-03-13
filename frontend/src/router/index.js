@@ -121,7 +121,16 @@ router.beforeEach((to, from, next) => {
 
   if (to.meta.requiresAuth && !auth.isLoggedIn) return next('/login')
   if (to.meta.public && auth.isLoggedIn) return next('/dashboard')
-  if (to.meta.permission && !auth.hasPermission(to.meta.permission)) return next('/dashboard')
+  if (to.meta.permission && !auth.hasPermission(to.meta.permission)) {
+    const payload = { type: 'error', message: 'Access Denied' }
+    sessionStorage.setItem('flash', JSON.stringify(payload))
+    window.dispatchEvent(new CustomEvent('app:flash', { detail: payload }))
+
+    // If user is already somewhere in the app, keep them on the same page.
+    // If this is the initial load (no "from" route yet), fall back to dashboard.
+    if (from?.name) return next(false)
+    return next('/dashboard')
+  }
 
   next()
 })

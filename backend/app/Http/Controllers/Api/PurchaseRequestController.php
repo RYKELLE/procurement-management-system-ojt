@@ -44,6 +44,11 @@ class PurchaseRequestController extends Controller
 
   public function store(Request $request)
   {
+    $actor = Auth::user();
+    if (!$actor || !$actor->can('create-purchase-request')) {
+      return response()->json(['message' => 'Access Denied'], 403);
+    }
+
     $validate = $request->validate([ //validate the user input for a new request
       'reason' => 'required|string',
       'items' => 'required|array|min:1', //takes an array
@@ -53,7 +58,7 @@ class PurchaseRequestController extends Controller
     ]);
 
     $purchaseRequest = PurchaseRequest::create([ //creating the request itself
-      'requested_by' => Auth::user()->id,
+      'requested_by' => $actor->id,
       'reason' => $validate['reason'],
       'request_status' => 'draft'
     ]);
@@ -80,7 +85,7 @@ class PurchaseRequestController extends Controller
       ->findOrFail($id);
 
     if ($user->hasRole('staff') && $purchaseRequest->requested_by !== $user->id) { //validates that staff are only able to access their own requests 
-      return response()->json(['message' => 'Unauthorized'], 403);
+      return response()->json(['message' => 'Access Denied'], 403);
     }
 
     return response()->json($purchaseRequest);
@@ -93,7 +98,7 @@ class PurchaseRequestController extends Controller
     $purchaseRequest = PurchaseRequest::findOrFail($id);
 
     if ($purchaseRequest->requested_by !== $user->id) { //u can only submit user own requests
-      return response()->json(['message' => 'Unauthrized'], 403);
+      return response()->json(['message' => 'Access Denied'], 403);
     }
 
     if ($purchaseRequest->request_status !== 'draft') {

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import api from '@/api/axios'
 
 function safeParse(key, fallback) {
   try {
@@ -47,5 +48,16 @@ export const useAuthStore = defineStore('auth', () => {
     return Array.isArray(permissions.value) && permissions.value.includes(permission)
   }
 
-  return { token, user, permissions, isLoggedIn, userRole, setAuth, clearAuth, hasPermission }
+  async function refreshMe() {
+    if (!token.value) return
+
+    const response = await api.get('/me')
+    user.value = response.data
+    permissions.value = Array.isArray(response.data?.permissions) ? response.data.permissions : []
+
+    localStorage.setItem('user', JSON.stringify(user.value))
+    localStorage.setItem('permissions', JSON.stringify(permissions.value))
+  }
+
+  return { token, user, permissions, isLoggedIn, userRole, setAuth, clearAuth, hasPermission, refreshMe }
 })

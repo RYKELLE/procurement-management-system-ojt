@@ -295,7 +295,11 @@ async function handleSubmit() {
     })
     router.push('/purchase-requests')
   } catch (error) {
-    errors.items = 'Failed to submit request. Please try again.'
+    if (error?.response?.status === 403) {
+      errors.items = 'Access Denied'
+    } else {
+      errors.items = 'Failed to submit request. Please try again.'
+    }
   } finally {
     loading.value = false
   }

@@ -8,6 +8,7 @@
         <p class="text-sm text-slate-500 mt-1">Manage all purchase requests</p>
       </div>
       <RouterLink
+        v-if="canCreateRequest"
         to="/purchase-requests/create"
         class="bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold tracking-widest uppercase px-5 py-3 transition whitespace-nowrap"
       >
@@ -162,6 +163,8 @@ import { useAuthStore } from '@/stores/auth'
 import api from '@/api/axios'
 
 const auth = useAuthStore()
+
+const canCreateRequest = computed(() => auth.hasPermission('create-purchase-request'))
 
 const canAction = computed(() => {
   const role = (auth.user?.role || '').toLowerCase()
