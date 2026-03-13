@@ -9,15 +9,34 @@
 
     <!-- Nav Links -->
     <nav class="flex-1 px-3 py-4 flex flex-col gap-1.5">
-      <RouterLink
-        v-for="link in navLinks"
-        :key="link.to"
-        :to="link.to"
-        class="block px-4 py-3 text-sm text-slate-700 border border-slate-200 rounded hover:bg-slate-50 transition"
-        active-class="bg-slate-100 font-semibold text-slate-900"
-      >
-        {{ link.label }}
-      </RouterLink>
+      <template v-for="item in navItems" :key="item.key">
+        <div
+          v-if="item.type === 'section'"
+          class="px-3 pt-4 pb-2 text-[11px] font-bold uppercase tracking-widest text-slate-400"
+        >
+          {{ item.label }}
+        </div>
+
+        <RouterLink
+          v-else-if="item.enabled"
+          :to="item.to"
+          class="block px-4 py-3 text-sm text-slate-700 border border-slate-200 rounded hover:bg-slate-50 transition"
+          active-class="bg-slate-100 font-semibold text-slate-900"
+        >
+          {{ item.label }}
+        </RouterLink>
+
+        <button
+          v-else
+          type="button"
+          class="w-full text-left px-4 py-3 text-sm border border-slate-200 rounded text-slate-400 bg-slate-50 cursor-not-allowed"
+          :title="item.title"
+          aria-disabled="true"
+          @click="showAccessDenied(item)"
+        >
+          {{ item.label }}
+        </button>
+      </template>
     </nav>
 
     <!-- Footer -->
@@ -46,28 +65,75 @@ import api from '@/api/axios'
 const router = useRouter()
 const auth = useAuthStore()
 
-const navLinks = computed(() => {
-  const links = []
+function hasAnyPermission(perms) {
+  return Array.isArray(perms) && perms.some(p => auth.hasPermission(p))
+}
 
-  links.push({ to: '/dashboard', label: 'Dashboard' })
+function showAccessDenied(item) {
+  const payload = { type: 'error', message: 'Access Denied' }
+  sessionStorage.setItem('flash', JSON.stringify(payload))
+  window.dispatchEvent(new CustomEvent('app:flash', { detail: payload }))
+}
 
-  if (auth.hasPermission('view-own-purchase-request') || auth.hasPermission('view-all-purchase-requests')) {
-    links.push({ to: '/purchase-requests', label: 'Purchase Requests' })
-  }
+const navItems = computed(() => {
+  const items = []
 
-  if (auth.hasPermission('approve-purchase-request') || auth.hasPermission('reject-purchase-request')) {
-    links.push({ to: '/approvals', label: 'Pending Approvals' })
-  }
+  items.push({ type: 'section', key: 'sec-general', label: 'General' })
+  items.push({ type: 'link', key: 'dashboard', to: '/dashboard', label: 'Dashboard', enabled: true })
 
-  if (auth.hasPermission('view-purchase-orders')) links.push({ to: '/purchase-orders', label: 'Purchase Orders' })
-  if (auth.hasPermission('view-invoices')) links.push({ to: '/invoices', label: 'Invoices' })
-  if (auth.hasPermission('view-suppliers')) links.push({ to: '/suppliers', label: 'Suppliers' })
+  items.push({ type: 'section', key: 'sec-proc', label: 'Procurement' })
+  items.push({
+    type: 'link',
+    key: 'purchase-requests',
+    to: '/purchase-requests',
+    label: 'Purchase Requests',
+    enabled: hasAnyPermission(['view-own-purchase-request', 'view-all-purchase-requests']),
+    title: 'Requires: view-own-purchase-request or view-all-purchase-requests',
+  })
+  items.push({
+    type: 'link',
+    key: 'approvals',
+    to: '/approvals',
+    label: 'Pending Approvals',
+    enabled: hasAnyPermission(['approve-purchase-request', 'reject-purchase-request']),
+    title: 'Requires: approve-purchase-request or reject-purchase-request',
+  })
+  items.push({
+    type: 'link',
+    key: 'purchase-orders',
+    to: '/purchase-orders',
+    label: 'Purchase Orders',
+    enabled: hasAnyPermission(['view-purchase-orders']),
+    title: 'Requires: view-purchase-orders',
+  })
+  items.push({
+    type: 'link',
+    key: 'invoices',
+    to: '/invoices',
+    label: 'Invoices',
+    enabled: hasAnyPermission(['view-invoices']),
+    title: 'Requires: view-invoices',
+  })
+  items.push({
+    type: 'link',
+    key: 'suppliers',
+    to: '/suppliers',
+    label: 'Suppliers',
+    enabled: hasAnyPermission(['view-suppliers']),
+    title: 'Requires: view-suppliers',
+  })
 
-  if (auth.hasPermission('manage-users') || auth.hasPermission('manage-roles')) {
-    links.push({ to: '/admin/users', label: 'Users & Roles' })
-  }
+  items.push({ type: 'section', key: 'sec-admin', label: 'Admin' })
+  items.push({
+    type: 'link',
+    key: 'admin-users',
+    to: '/admin/users',
+    label: 'Users & Roles',
+    enabled: hasAnyPermission(['manage-users', 'manage-roles']),
+    title: 'Requires: manage-users or manage-roles',
+  })
 
-  return links
+  return items
 })
 
 async function handleLogout() {

@@ -8,10 +8,9 @@
         <p class="text-sm text-slate-500 mt-1">Manage supplier information</p>
       </div>
       <button
+        v-if="canManageSuppliers()"
         @click="openAddModal"
-        :disabled="!canManageSuppliers()"
         class="bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold tracking-widest uppercase px-6 py-4 transition whitespace-nowrap"
-        :class="{ 'opacity-60 cursor-not-allowed': !canManageSuppliers() }"
       >
         + Add Supplier
       </button>
