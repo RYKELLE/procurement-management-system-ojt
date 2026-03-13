@@ -1,7 +1,7 @@
 <template>
   <div class="flex h-screen">
     <SideNav />
-    <div class="flex-1 bg-slate-100 p-6 overflow-y-auto">
+    <div class="flex-1 bg-slate-100 p-6 overflow-y-auto flex flex-col">
       <div
         v-if="flash"
         class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[min(720px,calc(100vw-2rem))] px-5 py-3 border text-sm flex items-start justify-between gap-4 shadow-lg"
@@ -18,11 +18,11 @@
       <RouterView v-slot="{ Component, route }">
         <template v-if="route.meta.keepAlive">
           <KeepAlive>
-            <component :is="Component" />
+            <component :is="Component" class="h-full" />
           </KeepAlive>
         </template>
         <template v-else>
-          <component :is="Component" />
+          <component :is="Component" class="h-full" />
         </template>
       </RouterView>
     </div>

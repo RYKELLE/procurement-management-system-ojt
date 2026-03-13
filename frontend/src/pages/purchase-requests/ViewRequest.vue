@@ -102,14 +102,14 @@
               <td class="px-4 py-3 text-slate-500">{{ index + 1 }}</td>
               <td class="px-4 py-3 text-slate-700">{{ item.item?.item_name || 'N/A' }}</td>
               <td class="px-4 py-3 text-slate-700">{{ item.item_quantity }}</td>
-              <td class="px-4 py-3 text-slate-700">₱{{ Number(item.unit_price).toFixed(2) }}</td>
-              <td class="px-4 py-3 text-slate-700 font-semibold">₱{{ (item.item_quantity * item.unit_price).toFixed(2) }}</td>
+              <td class="px-4 py-3 text-slate-700">${{ Number(item.unit_price).toFixed(2) }}</td>
+              <td class="px-4 py-3 text-slate-700 font-semibold">${{ (item.item_quantity * item.unit_price).toFixed(2) }}</td>
             </tr>
           </tbody>
           <tfoot class="bg-slate-50 border-t border-slate-200">
             <tr>
               <td colspan="4" class="px-4 py-4 text-right text-sm font-bold text-slate-700 uppercase tracking-widest">Total</td>
-              <td class="px-4 py-4 text-sm font-bold text-slate-800">₱{{ total.toFixed(2) }}</td>
+              <td class="px-4 py-4 text-sm font-bold text-slate-800">${{ total.toFixed(2) }}</td>
             </tr>
           </tfoot>
         </table>

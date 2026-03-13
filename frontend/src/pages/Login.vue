@@ -108,8 +108,8 @@ async function handleLogin() {
     auth.setAuth(token, user, permissions)
 
     const perms = Array.isArray(permissions) ? permissions : []
-    if (perms.includes('approve-purchase-request') || perms.includes('reject-purchase-request')) router.push('/approvals')
-    else if (perms.includes('view-own-purchase-request') || perms.includes('view-all-purchase-requests')) router.push('/purchase-requests')
+    if (perms.includes('approve-purchase-request') || perms.includes('reject-purchase-request')) router.push('/dashboard')
+    else if (perms.includes('view-own-purchase-request') || perms.includes('view-all-purchase-requests')) router.push('/dashboard')
     else router.push('/dashboard')
 
   } catch (error) {

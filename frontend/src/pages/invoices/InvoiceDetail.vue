@@ -174,6 +174,7 @@ async function fetchInvoice (){
   try{
     const response = await api.get(`/invoices/${route.params.id}`);
     invoice.value = response.data;
+    form.amount_paid = response.data.amount
   }catch(err){
     error.value = 'Failed to fetch invoice';
   }finally{
@@ -186,7 +187,7 @@ onMounted(fetchInvoice);
 const today = new Date().toISOString().split('T')[0]
 
 const form = reactive({
-  amount_paid: '',
+  amount_paid: invoice.value?.amount || '',
   payment_date: today,
   payment_method: '',
 })
@@ -207,6 +208,9 @@ function validate() {
 
   if (!form.amount_paid || form.amount_paid <= 0) {
     errors.amount_paid = 'Amount is required.'
+    valid = false
+  }else if(form.amount_paid < invoice.value.amount){
+    errors.amount_paid = `Amount must be at least $${Number(invoice.value.amount).toFixed(2)}`
     valid = false
   }
   if (!form.payment_date) {

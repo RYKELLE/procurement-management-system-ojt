@@ -106,17 +106,17 @@
         @click="markAsCompleted"
         class="bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold uppercase tracking-widest px-10 py-4 transition"
       >
-        Mark as Completed
+        Mark as Delivered
       </button>
       <RouterLink
         v-if="order.status === 'completed'"
-        :to="`/invoices/${order.id}`"
+        :to="`/invoices/${order.invoice?.id}`"
         class="bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold uppercase tracking-widest px-10 py-4 transition"
       >
         View Invoice
       </RouterLink>
       <RouterLink
-        :to="`/invoices/${order.invoice_id}`"
+        :to="`/purchase-orders`"
         class="border border-slate-800 text-slate-800 hover:bg-slate-100 text-sm font-bold uppercase tracking-widest px-10 py-4 transition"
       >
         Back to List
@@ -162,7 +162,8 @@ async function markAsCompleted(){
   try{
     const response = await api.post(`purchase-orders/${route.params.id}/complete`);
     order.value.status = 'completed'
-    order.value.invoice_id = response.data.invoice.id
+    order.value.invoice = response.data.invoice
+    console.log(order.value);
   }catch(err){
     alert('Failed');
   }

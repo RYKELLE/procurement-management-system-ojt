@@ -39,7 +39,7 @@ class PurchaseOrderController extends Controller
       return response()->json(['message' => 'Access Denied'], 403);
     }
 
-    $order = PurchaseOrder::with('purchaseRequest.items.item', 'purchaseRequest.requester', 'supplier')
+    $order = PurchaseOrder::with('purchaseRequest.items.item', 'purchaseRequest.requester', 'supplier', 'invoice')
       ->findOrFail($id);
 
     if (!($user->can('view-all-purchase-requests') || $user->can('manage-purchase-orders')) && $order->purchaseRequest->requested_by !== $user->id) {

@@ -81,7 +81,8 @@
     </div>
 
     <!-- Table -->
-    <div v-else class="bg-white border border-slate-200 overflow-hidden">
+    <div v-else class="flex flex-col flex-1 bg-white border border-slate-200 min-h-0">
+      <div class="flex-1 overflow-y-auto">
       <table class="w-full text-sm table-fixed">
         <colgroup>
           <col style="width: 14%" />
@@ -153,6 +154,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
     </div>
 
   </div>
