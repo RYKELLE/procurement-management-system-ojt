@@ -12,16 +12,19 @@ class PurchaseOrderController extends Controller
   public function index()
   {
     $user = Auth::user(); //get the current user
+    if (!$user || !$user->can('view-purchase-orders')) {
+      return response()->json(['message' => 'Access Denied'], 403);
+    }
 
-    if ($user->hasRole('staff')) {
+    if ($user->can('view-all-purchase-requests') || $user->can('manage-purchase-orders')) {
       $orders = PurchaseOrder::with('purchaseRequest.requester', 'supplier')
-        ->whereHas('purchaseRequest', function ($query) use ($user) {
-          $query->where('requested_by', $user->id);
-        })
         ->latest()
         ->get();
     } else {
       $orders = PurchaseOrder::with('purchaseRequest.requester', 'supplier')
+        ->whereHas('purchaseRequest', function ($query) use ($user) {
+          $query->where('requested_by', $user->id);
+        })
         ->latest()
         ->get();
     }
@@ -32,12 +35,15 @@ class PurchaseOrderController extends Controller
   public function show($id)
   {
     $user = Auth::user();
+    if (!$user || !$user->can('view-purchase-orders')) {
+      return response()->json(['message' => 'Access Denied'], 403);
+    }
 
     $order = PurchaseOrder::with('purchaseRequest.items.item', 'purchaseRequest.requester', 'supplier')
       ->findOrFail($id);
 
-    if ($user->hasRole('staff') && $order->purchaseRequest->requested_by !== $user->id) {
-      return response()->json(['message' => 'Unauthorized'], 403);
+    if (!($user->can('view-all-purchase-requests') || $user->can('manage-purchase-orders')) && $order->purchaseRequest->requested_by !== $user->id) {
+      return response()->json(['message' => 'Access Denied'], 403);
     }
 
     return response()->json($order);
@@ -45,6 +51,11 @@ class PurchaseOrderController extends Controller
 
   public function markAsCompleted($id)
   {
+    $user = Auth::user();
+    if (!$user || !$user->can('manage-purchase-orders')) {
+      return response()->json(['message' => 'Access Denied'], 403);
+    }
+
     $purchaseOrder = PurchaseOrder::with('purchaseRequest.items')
       ->findOrFail($id);
 
@@ -56,7 +67,7 @@ class PurchaseOrderController extends Controller
 
     $invoice = Invoice::create([
       'order_id' => $purchaseOrder->id,
-      'processed_by' => Auth::user()->id,
+      'processed_by' => $user->id,
       'status' => 'unpaid',
       'amount' => $purchaseOrder->order_total_amount,
       'due_date' => now()->addDays(15),

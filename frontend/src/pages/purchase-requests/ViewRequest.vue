@@ -129,8 +129,9 @@
         </button>
 
         <!-- Approver: approve/reject if submitted -->
-        <template v-if="canApprove">
+        <template v-if="canApprove || canReject">
           <button
+            v-if="canApprove"
             @click="handleApprove"
             :disabled="actionLoading"
             class="bg-slate-800 hover:bg-slate-700 disabled:opacity-60 text-white text-sm font-bold uppercase tracking-widest px-8 py-3 transition"
@@ -138,6 +139,7 @@
             {{ actionLoading ? 'Processing...' : 'Approve' }}
           </button>
           <button
+            v-if="canReject"
             @click="handleReject"
             :disabled="actionLoading"
             class="border border-slate-800 text-slate-800 hover:bg-slate-100 disabled:opacity-60 text-sm font-bold uppercase tracking-widest px-8 py-3 transition"
@@ -185,14 +187,11 @@ const total = computed(() => {
 })
 
 const canSubmit = computed(() => {
-  const role = (auth.user?.role || '').toLowerCase()
-  return (role === 'staff' || role === 'admin') && request.value.request_status === 'draft'
+  return auth.hasPermission('submit-purchase-request') && request.value.request_status === 'draft'
 })
 
-const canApprove = computed(() => {
-  const role = (auth.user?.role || '').toLowerCase()
-  return (role === 'approver' || role === 'admin') && request.value.request_status === 'submitted'
-})
+const canApprove = computed(() => auth.hasPermission('approve-purchase-request') && request.value.request_status === 'submitted')
+const canReject = computed(() => auth.hasPermission('reject-purchase-request') && request.value.request_status === 'submitted')
 
 async function handleSubmit() {
   actionLoading.value = true

@@ -32,7 +32,7 @@
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
-import SideNav from '@/components/SideNav.vue'
+import SideNav from '@/components/Sidenav.vue'
 
 const route = useRoute()
 const flash = ref(null)

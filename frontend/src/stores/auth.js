@@ -19,7 +19,6 @@ export const useAuthStore = defineStore('auth', () => {
   const permissions = ref(safeParse('permissions', []))
 
   const isLoggedIn = computed(() => !!token.value)
-  const userRole = computed(() => user.value?.role || null)
 
   function setAuth(newToken, newUser, newPermissions) {
     token.value = newToken
@@ -42,9 +41,6 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function hasPermission(permission) {
-    const role = (user.value?.role || '').toLowerCase()
-    if (role === 'admin') return true
-
     return Array.isArray(permissions.value) && permissions.value.includes(permission)
   }
 
@@ -59,5 +55,5 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem('permissions', JSON.stringify(permissions.value))
   }
 
-  return { token, user, permissions, isLoggedIn, userRole, setAuth, clearAuth, hasPermission, refreshMe }
+  return { token, user, permissions, isLoggedIn, setAuth, clearAuth, hasPermission, refreshMe }
 })

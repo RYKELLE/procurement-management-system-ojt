@@ -27,16 +27,19 @@ class PurchaseRequestController extends Controller
   public function index()
   {
     $user = Auth::user(); //gets the current user
+    if (!$user) return response()->json(['message' => 'Access Denied'], 403);
 
-    if ($user->hasRole("staff")) {
+    if ($user->can('view-all-purchase-requests')) {
+      $request = PurchaseRequest::with('items.item', 'requester', 'approver')
+        ->latest()
+        ->get();
+    } elseif ($user->can('view-own-purchase-request')) {
       $request = PurchaseRequest::with('items.item', 'requester')
         ->where('requested_by', $user->id)
         ->latest()
         ->get();
     } else {
-      $request = PurchaseRequest::with('items.item', 'requester', 'approver')
-        ->latest()
-        ->get();
+      return response()->json(['message' => 'Access Denied'], 403);
     }
 
     return response()->json($request);
@@ -80,11 +83,16 @@ class PurchaseRequestController extends Controller
   public function show($id)
   {
     $user = Auth::user(); //get the current user 
+    if (!$user) return response()->json(['message' => 'Access Denied'], 403);
 
     $purchaseRequest = PurchaseRequest::with('items.item', 'approver', 'requester') //finds the specific request using the request ID
       ->findOrFail($id);
 
-    if ($user->hasRole('staff') && $purchaseRequest->requested_by !== $user->id) { //validates that staff are only able to access their own requests 
+    if ($user->can('view-all-purchase-requests')) {
+      return response()->json($purchaseRequest);
+    }
+
+    if (!$user->can('view-own-purchase-request') || $purchaseRequest->requested_by !== $user->id) { //validates that users can access their own requests 
       return response()->json(['message' => 'Access Denied'], 403);
     }
 
@@ -94,6 +102,9 @@ class PurchaseRequestController extends Controller
   public function submit($id)
   {
     $user = Auth::user();
+    if (!$user || !$user->can('submit-purchase-request')) {
+      return response()->json(['message' => 'Access Denied'], 403);
+    }
 
     $purchaseRequest = PurchaseRequest::findOrFail($id);
 

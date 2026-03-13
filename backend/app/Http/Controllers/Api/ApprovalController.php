@@ -26,6 +26,11 @@ class ApprovalController extends Controller
 
   public function approve($id)
   {
+    $actor = Auth::user();
+    if (!$actor || !$actor->can('approve-purchase-request')) {
+      return response()->json(['message' => 'Access Denied'], 403);
+    }
+
     $purchaseRequest = PurchaseRequest::with('items.item.supplier')->findOrFail($id);
 
     if ($purchaseRequest->request_status !== 'submitted') {
@@ -34,7 +39,7 @@ class ApprovalController extends Controller
 
     $purchaseRequest->update([
       'request_status' => 'approved',
-      'approved_by' => Auth::user()->id,
+      'approved_by' => $actor->id,
       'date_approved' => now()
     ]);
 
@@ -47,7 +52,7 @@ class ApprovalController extends Controller
     PurchaseOrder::create([
       'request_id' => $purchaseRequest->id,
       'supplier_id' => $supplierId,
-      'created_by' => Auth::user()->id,
+      'created_by' => $actor->id,
       'order_total_amount' => $total,
       'status' => 'active'
     ]);
@@ -59,6 +64,11 @@ class ApprovalController extends Controller
 
   public function reject($id)
   {
+    $actor = Auth::user();
+    if (!$actor || !$actor->can('reject-purchase-request')) {
+      return response()->json(['message' => 'Access Denied'], 403);
+    }
+
     $purchaseRequest = PurchaseRequest::findOrFail($id);
 
     if ($purchaseRequest->request_status !== 'submitted') {
@@ -67,7 +77,7 @@ class ApprovalController extends Controller
 
     $purchaseRequest->update([
       'request_status' => 'rejected',
-      'approved_by' => Auth::user()->id,
+      'approved_by' => $actor->id,
       'date_approved' => now()
     ]);
 

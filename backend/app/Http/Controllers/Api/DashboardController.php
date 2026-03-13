@@ -13,17 +13,12 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
+        if (!$user) return response()->json(['message' => 'Access Denied'], 403);
 
         // ── Stats ────────────────────────────────────────────
-        if ($user->hasRole('staff')) {
-            // Staff only sees their own requests
-            $pendingCount = PurchaseRequest::where('requested_by', $user->id)
-                ->where('request_status', 'submitted')
-                ->count();
-        } else {
-            // Admin and approver see all
-            $pendingCount = PurchaseRequest::where('request_status', 'submitted')->count();
-        }
+        $pendingCount = $user->can('view-all-purchase-requests')
+            ? PurchaseRequest::where('request_status', 'submitted')->count()
+            : PurchaseRequest::where('requested_by', $user->id)->where('request_status', 'submitted')->count();
 
         $supplierCount = Supplier::count();
 

@@ -132,14 +132,16 @@
                 >
                   View
                 </RouterLink>
-                <template v-if="canAction && request.request_status === 'submitted'">
+                <template v-if="request.request_status === 'submitted'">
                   <button
+                    v-if="canApproveRequest"
                     @click="handleApprove(request)"
                     class="bg-slate-800 text-white text-xs font-bold uppercase tracking-wide px-3 py-1.5 hover:bg-slate-700 transition"
                   >
                     Approve
                   </button>
                   <button
+                    v-if="canRejectRequest"
                     @click="handleReject(request)"
                     class="border border-slate-300 text-slate-700 text-xs font-bold uppercase tracking-wide px-3 py-1.5 hover:bg-slate-50 transition"
                   >
@@ -166,10 +168,8 @@ const auth = useAuthStore()
 
 const canCreateRequest = computed(() => auth.hasPermission('create-purchase-request'))
 
-const canAction = computed(() => {
-  const role = (auth.user?.role || '').toLowerCase()
-  return role === 'admin' || role === 'approver'
-})
+const canApproveRequest = computed(() => auth.hasPermission('approve-purchase-request'))
+const canRejectRequest = computed(() => auth.hasPermission('reject-purchase-request'))
 
 const filters = reactive({ status: '', dateFrom: '', dateTo: '' })
 const activeFilters = reactive({ status: '', dateFrom: '', dateTo: '' })

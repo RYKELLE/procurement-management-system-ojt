@@ -65,7 +65,7 @@
 
     <!-- Record Payment — admin only, hidden if already paid -->
     <div
-      v-if="isAdmin && invoice.status !== 'paid'"
+      v-if="canManageInvoices && invoice.status !== 'paid'"
       class="bg-white border border-slate-800 px-6 py-5"
     >
       <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide mb-5">Record Payment</h2>
@@ -168,9 +168,7 @@ const invoice = ref(null);
 const loading = ref(true);
 const error = ref(null);
 
-const isAdmin = computed(() => {
-  return (auth.user?.role || '').toLowerCase() === 'admin'
-})
+const canManageInvoices = computed(() => auth.hasPermission('manage-invoices'))
 
 async function fetchInvoice (){
   try{

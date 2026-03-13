@@ -46,7 +46,7 @@ const routes = [
         path: 'purchase-requests',
         name: 'MyRequests',
         component: () => import('@/pages/purchase-requests/MyRequests.vue'),
-        meta: { permission: 'view-own-purchase-request' }
+        meta: { permission: ['view-own-purchase-request', 'view-all-purchase-requests'] }
       },
       {
         path: 'purchase-requests/create',
@@ -58,7 +58,7 @@ const routes = [
         path: 'purchase-requests/:id',
         name: 'ViewRequest',
         component: () => import('@/pages/purchase-requests/ViewRequest.vue'),
-        meta: { permission: 'view-own-purchase-request' }
+        meta: { permission: ['view-own-purchase-request', 'view-all-purchase-requests'] }
       },
 
       // APPROVER
@@ -66,7 +66,7 @@ const routes = [
         path: 'approvals',
         name: 'PendingApprovals',
         component: () => import('@/pages/approvals/PendingApprovals.vue'),
-        meta: { permission: 'approve-purchase-request' }
+        meta: { permission: ['approve-purchase-request', 'reject-purchase-request'] }
       },
 
       // PURCHASE ORDERS
@@ -80,7 +80,8 @@ const routes = [
       {
         path: 'purchase-orders/:id',
         name: 'OrderDetail',
-        component: () => import('@/pages/purchase-orders/OrderDetail.vue')
+        component: () => import('@/pages/purchase-orders/OrderDetail.vue'),
+        meta: { permission: 'view-purchase-orders' }
       },
 
       // INVOICES
@@ -93,7 +94,8 @@ const routes = [
       {
         path: 'invoices/:id',
         name: 'InvoiceDetail',
-        component: () => import('@/pages/invoices/InvoiceDetail.vue')
+        component: () => import('@/pages/invoices/InvoiceDetail.vue'),
+        meta: { permission: 'view-invoices' }
       },
 
       // SUPPLIERS
@@ -121,7 +123,14 @@ router.beforeEach((to, from, next) => {
 
   if (to.meta.requiresAuth && !auth.isLoggedIn) return next('/login')
   if (to.meta.public && auth.isLoggedIn) return next('/dashboard')
-  if (to.meta.permission && !auth.hasPermission(to.meta.permission)) {
+
+  const required = to.meta.permission
+  const allowed =
+    !required ? true :
+    Array.isArray(required) ? required.some(p => auth.hasPermission(p)) :
+    auth.hasPermission(required)
+
+  if (!allowed) {
     const payload = { type: 'error', message: 'Access Denied' }
     sessionStorage.setItem('flash', JSON.stringify(payload))
     window.dispatchEvent(new CustomEvent('app:flash', { detail: payload }))

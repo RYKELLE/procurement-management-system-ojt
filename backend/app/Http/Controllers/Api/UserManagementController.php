@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class UserManagementController extends Controller
@@ -29,8 +30,8 @@ class UserManagementController extends Controller
           'name' => $user->name,
           'email' => $user->email,
           'role' => strtolower((string) $user->getRoleNames()->first()),
-          // Effective permissions (direct + via role)
-          'permissions' => $user->getAllPermissions()->pluck('name')->values()->all(),
+          // Effective permissions (direct + via role, minus per-user revocations)
+          'permissions' => $user->effectivePermissionNames(),
         ];
       })
       ->values();
@@ -71,7 +72,7 @@ class UserManagementController extends Controller
       'name' => $user->name,
       'email' => $user->email,
       'role' => strtolower((string) $user->getRoleNames()->first()),
-      'permissions' => $user->getAllPermissions()->pluck('name')->values()->all(),
+      'permissions' => $user->effectivePermissionNames(),
     ], 201);
   }
 
@@ -97,7 +98,7 @@ class UserManagementController extends Controller
       'name' => $user->name,
       'email' => $user->email,
       'role' => strtolower((string) $user->getRoleNames()->first()),
-      'permissions' => $user->getAllPermissions()->pluck('name')->values()->all(),
+      'permissions' => $user->effectivePermissionNames(),
     ]);
   }
 
@@ -115,14 +116,32 @@ class UserManagementController extends Controller
       'permissions.*' => ['string', Rule::exists($permissionsTable, 'name')],
     ]);
 
-    $user->syncPermissions($validated['permissions']);
+    $desired = array_values(array_unique(array_map('strval', $validated['permissions'])));
+
+    $rolePermissions = $user->getPermissionsViaRoles()->pluck('name')->map(fn ($n) => (string) $n)->values()->all();
+
+    // Only permissions NOT provided by role should be stored as direct user permissions.
+    $direct = array_values(array_diff($desired, $rolePermissions));
+
+    // If a role provides a permission but it's NOT in the desired list, treat it as revoked for this user.
+    $revokedNames = array_values(array_diff($rolePermissions, $desired));
+
+    $user->syncPermissions($direct);
+
+    $revokedIds = Permission::query()
+      ->whereIn('name', $revokedNames)
+      ->pluck('id')
+      ->values()
+      ->all();
+
+    $user->revokedPermissions()->sync($revokedIds);
 
     return response()->json([
       'id' => $user->id,
       'name' => $user->name,
       'email' => $user->email,
       'role' => strtolower((string) $user->getRoleNames()->first()),
-      'permissions' => $user->getAllPermissions()->pluck('name')->values()->all(),
+      'permissions' => $user->effectivePermissionNames(),
     ]);
   }
 

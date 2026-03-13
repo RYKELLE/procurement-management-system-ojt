@@ -95,7 +95,7 @@ onMounted(fetchInvoices)
 
 // Only admin can mark invoices as paid
 const canMarkAsPaid = computed(() => {
-  return (auth.user?.role || '').toLowerCase() === 'admin'
+  return auth.hasPermission('manage-invoices')
 })
 
 async function handleMarkAsPaid(invoice) {

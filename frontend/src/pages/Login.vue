@@ -107,10 +107,10 @@ async function handleLogin() {
     const { token, user, permissions } = response.data
     auth.setAuth(token, user, permissions)
 
-    const role = (user.role || '').toLowerCase()
-    if (role === 'admin') router.push('/dashboard')
-    else if (role === 'approver') router.push('/approvals')
-    else router.push('/purchase-requests')
+    const perms = Array.isArray(permissions) ? permissions : []
+    if (perms.includes('approve-purchase-request') || perms.includes('reject-purchase-request')) router.push('/approvals')
+    else if (perms.includes('view-own-purchase-request') || perms.includes('view-all-purchase-requests')) router.push('/purchase-requests')
+    else router.push('/dashboard')
 
   } catch (error) {
     if (error.response?.status === 401) {

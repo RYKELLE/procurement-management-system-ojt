@@ -47,28 +47,23 @@ const router = useRouter()
 const auth = useAuthStore()
 
 const navLinks = computed(() => {
-  const role = (auth.user?.role || '').toLowerCase()
   const links = []
 
   links.push({ to: '/dashboard', label: 'Dashboard' })
 
-  if (role === 'staff') {
+  if (auth.hasPermission('view-own-purchase-request') || auth.hasPermission('view-all-purchase-requests')) {
     links.push({ to: '/purchase-requests', label: 'Purchase Requests' })
   }
 
-  if (role === 'approver' || role === 'admin') {
+  if (auth.hasPermission('approve-purchase-request') || auth.hasPermission('reject-purchase-request')) {
     links.push({ to: '/approvals', label: 'Pending Approvals' })
   }
 
-  if (role === 'admin') {
-    links.push({ to: '/purchase-requests', label: 'Purchase Requests' })
-  }
+  if (auth.hasPermission('view-purchase-orders')) links.push({ to: '/purchase-orders', label: 'Purchase Orders' })
+  if (auth.hasPermission('view-invoices')) links.push({ to: '/invoices', label: 'Invoices' })
+  if (auth.hasPermission('view-suppliers')) links.push({ to: '/suppliers', label: 'Suppliers' })
 
-  links.push({ to: '/purchase-orders', label: 'Purchase Orders' })
-  links.push({ to: '/invoices', label: 'Invoices' })
-  links.push({ to: '/suppliers', label: 'Suppliers' })
-
-  if (role === 'admin') {
+  if (auth.hasPermission('manage-users') || auth.hasPermission('manage-roles')) {
     links.push({ to: '/admin/users', label: 'Users & Roles' })
   }
 
