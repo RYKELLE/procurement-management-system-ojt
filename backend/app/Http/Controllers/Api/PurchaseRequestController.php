@@ -31,12 +31,12 @@ class PurchaseRequestController extends Controller
 
     if ($user->can('view-all-purchase-requests')) {
       $request = PurchaseRequest::with('items.item', 'requester', 'approver')
-        ->latest()
+        ->orderByDesc('id')
         ->get();
     } elseif ($user->can('view-own-purchase-request')) {
       $request = PurchaseRequest::with('items.item', 'requester')
         ->where('requested_by', $user->id)
-        ->latest()
+        ->orderByDesc('id')
         ->get();
     } else {
       return response()->json(['message' => 'Access Denied'], 403);

@@ -18,14 +18,14 @@ class PurchaseOrderController extends Controller
 
     if ($user->can('view-all-purchase-requests') || $user->can('manage-purchase-orders')) {
       $orders = PurchaseOrder::with('purchaseRequest.requester', 'supplier')
-        ->latest()
+        ->orderByDesc('id')
         ->get();
     } else {
       $orders = PurchaseOrder::with('purchaseRequest.requester', 'supplier')
         ->whereHas('purchaseRequest', function ($query) use ($user) {
           $query->where('requested_by', $user->id);
         })
-        ->latest()
+        ->orderByDesc('id')
         ->get();
     }
 
